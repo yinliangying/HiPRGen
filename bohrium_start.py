@@ -41,6 +41,7 @@ from HiPRGen.species_questions import (
 from monty.serialization import loadfn, dumpfn
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from pdf2png import pdf2png
 
 
 def smile_to_inchi(smile):
@@ -372,6 +373,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
         work_dir + '/reaction_tally.tex'
     )
     os.system("cd %s && pdflatex reaction_tally.tex " % (work_dir,))
+    pdf2png(work_dir + '/reaction_tally.pdf')
 
     # Run `pdflatex reaction_tally.tex` in `scratch/li_test` to generate
     # the tally report PDF.
@@ -380,6 +382,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
     # The species report shows every specie in the network and their IDs.
     species_report(network_loader, work_dir + '/species_report.tex')
     os.system("cd %s && pdflatex species_report.tex " % (work_dir,))
+    pdf2png(work_dir + '/species_report.pdf')
     # Run `pdflatex species_report.tex` in `scratch/li_test` to generate
     # the species report PDF.
 
@@ -405,6 +408,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
     # thus to be considered products of the test network used here.
     sink_report(simulation_replayer, work_dir + '/sink_report.tex')
     os.system("cd %s && pdflatex sink_report.tex " % (work_dir,))
+    pdf2png(work_dir + '/sink_report.pdf')
     # Run `pdflatex sink_report.tex` in `scratch/li_test` to generate
     # the sink report PDF.
     print("WORKDIR:", work_dir, file=sys.stderr)
@@ -431,6 +435,9 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
                            observed_molecule_index,
                            work_dir + '/observed_molecule_%s_consumption_report.tex' % (observed_molecule_index))
         os.system("cd %s && pdflatex observed_molecule_%s_consumption_report.tex " % (work_dir, observed_molecule_index,))
+        pdf2png( work_dir + '/observed_molecule_%s_consumption_report.pdf' % (observed_molecule_index))
+        pdf2png(work_dir + '/observed_molecule_%s_pathways.pdf' % (observed_molecule_index))
+
 
 
 if __name__ == '__main__':
