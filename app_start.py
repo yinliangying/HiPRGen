@@ -8,6 +8,13 @@ from dp.launching.typing import List, BaseModel, Field, OutputDirectory, InputFi
     Field, Enum
 from dp.launching.typing.io import InputMoleculeContent
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] [%(name)s] - %(message)s')
+
+logger = logging.getLogger(__name__)
 
 def SCORING_func(output_dir,
                  method_type,
@@ -51,8 +58,8 @@ def SCORING_func(output_dir,
         error_log = os.path.join(work_dir, r'ERROR.log')
         with open(error_log, 'w') as f:
             f.write('\n')
-        print(work_dir)
-        print(number_of_threads)
+        logger.info("work_dir:%s"%(work_dir))
+        logger.info("number_of_threads:%s"%number_of_threads)
         li_run(network_json_path=network_json_path, network_folder=network_folder,
                init_molecule_list=init_molecule_smiles_list, work_dir=work_dir,
                observed_molecule_list=observed_molecule_smiles_list,

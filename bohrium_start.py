@@ -42,7 +42,8 @@ from monty.serialization import loadfn, dumpfn
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-
+import logging
+logger = logging.getLogger(__name__)
 def smile_to_inchi(smile):
     mol = Chem.MolFromSmiles(smile)
     inchi = Chem.MolToInchi(mol)
@@ -121,7 +122,7 @@ def gen_network(network_json_path, number_of_threads=0):
     if os.path.exists(mol_entries_pickle_path):
         with open(mol_entries_pickle_path, "rb") as pickle_file:
             mol_entries = pickle.load(pickle_file)
-        print(len(mol_entries))
+        logger.info("len(mol_entries):%s"%len(mol_entries))
         return mol_entries
 
     if not os.path.exists(network_folder):
@@ -242,11 +243,11 @@ def gen_network(network_json_path, number_of_threads=0):
     if not os.path.exists(network_folder + '/dispatcher_payload.json'):
         dumpfn(dispatcher_payload, network_folder + '/dispatcher_payload.json')
     else:
-        print(network_folder + '/dispatcher_payload.json', "exists")
+        logger.info(network_folder + '/dispatcher_payload.json' + "exists")
     if not os.path.exists(network_folder + '/worker_payload.json'):
         dumpfn(worker_payload, network_folder + '/worker_payload.json')
     else:
-        print(network_folder + '/worker_payload.json', "exists")
+        logger.info(network_folder + '/worker_payload.json'+ "exists")
 
     if not os.path.exists(network_folder + '/rn.sqlite'):
         subprocess.run(
@@ -263,7 +264,7 @@ def gen_network(network_json_path, number_of_threads=0):
             ]
         )
     else:
-        print(network_folder + '/rn.sqlite' + " exists")
+        logger.info(network_folder + '/rn.sqlite' + " exists")
 
     return mol_entries
 
@@ -292,8 +293,8 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
         mol_entries,
         '/root/HiPRGen/xyz_files/Li.xyz',
         1)
-    print(Li_plus_id)
-    print(type(Li_plus_id))
+    logger.info("Li_plus_id:%s"%Li_plus_id)
+    logger.info("type(Li_plus_id):%s"%type(Li_plus_id))
 
     initial_state = {}
 
@@ -303,7 +304,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
                                                                   xyz_file_path='input.xyz',
                                                                   charge=0)
         if input_molecule_index == None:
-            print(f'Cannot find {an_input_smiles}')
+            logger.info(f'Cannot find {an_input_smiles}')
             continue
         initial_state[input_molecule_index] = 30
 
@@ -312,7 +313,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
 
     initial_state[Li_plus_id] = 30
 
-    print(initial_state)
+    logger.info("initial_state:%s"%initial_state)
     initial_state_path = os.path.join(work_dir, 'initial_state.sqlite')
     if os.path.exists(initial_state_path):
         os.remove(initial_state_path)
@@ -327,22 +328,22 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
     # Gillespie algorithm: https://github.com/BlauGroup/RNMC. Here we run 1000
     # trajectories each of 200 steps.
 
-    print(number_of_threads)
+    logger.info("number_of_threads:%s"%number_of_threads)
 
     reaction_database = os.path.join(network_folder, 'rn.sqlite')
     initial_state_database = os.path.join(work_dir, 'initial_state.sqlite')
 
-    number_of_threads = str(16)
+    #number_of_threads = str(16)
     command_line = f'GMC --reaction_database={reaction_database} --initial_state_database={initial_state_database} --number_of_simulations=1000 --base_seed=1000 --thread_count={number_of_threads} --step_cutoff=200'
 
-    print('\n')
-    print(command_line)
-    print('\n')
+
+    logger.info("command_line:%s"%command_line)
+
     os.system(command_line)
 
-    print('Here again')
+    logger.info('Here again')
 
-    print("WORKDIR:", work_dir, file=sys.stderr)
+    logger.info("WORKDIR:"% work_dir )
     os.system("ls %s" % (work_dir))
     # The network loader builds a python object around a reaction network
     # and the molecules to make it easier to use them.
@@ -375,7 +376,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
 
     # Run `pdflatex reaction_tally.tex` in `scratch/li_test` to generate
     # the tally report PDF.
-    print("WORKDIR:", work_dir, file=sys.stderr)
+    logger.info("WORKDIR:"% work_dir )
     os.system("ls %s" % (work_dir))
     # The species report shows every specie in the network and their IDs.
     species_report(network_loader, work_dir + '/species_report.tex')
@@ -407,7 +408,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
     os.system("cd %s && pdflatex sink_report.tex " % (work_dir,))
     # Run `pdflatex sink_report.tex` in `scratch/li_test` to generate
     # the sink report PDF.
-    print("WORKDIR:", work_dir, file=sys.stderr)
+    logger.info("WORKDIR:"% work_dir )
     os.system("ls %s" % (work_dir))
 
     for an_observed_molecule in observed_molecule_list:
@@ -417,7 +418,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
                                                                   charge=0)
 
         if observed_molecule_index == None:
-            print(f'Cannot find {an_observed_molecule}')
+            logger.info(f'Cannot find {an_observed_molecule}')
             continue
 
         generate_pathway_report(
