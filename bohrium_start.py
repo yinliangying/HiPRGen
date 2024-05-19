@@ -271,7 +271,7 @@ def gen_network(network_json_path,network_folder):
 
 
 def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
-           observed_molecule_list, molecule_type, number_of_threads=0):
+           observed_molecule_list, molecule_type, ):
     """
     :param network_json_path:
     :param work_dir: it must not exist
