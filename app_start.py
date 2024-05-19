@@ -3,7 +3,10 @@ from dp.launching.cli import SubParser, default_minimal_exception_handler, run_s
 from dp.launching.typing import List, BaseModel, Field, OutputDirectory, InputFilePath, Int, Union, String, Literal, \
     Field, Enum
 from dp.launching.typing.io import InputMoleculeContent
-import subprocess
+
+#添加pathonpath
+os.environ["PATH"] = os.environ["PATH"] + ":/root/HiPRGen/"
+from pdf2png import interfacial_reaction_pdf2png
 
 def SCORING_func(output_dir,
                  method_type,
@@ -28,8 +31,8 @@ def SCORING_func(output_dir,
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list} --observed_molecule_libe_id_list {observed_molecule_libe_id_list} \
             ")
+        interfacial_reaction_pdf2png(output_dir)
 
-        process=subprocess.Popen(args=["/root/miniconda3/bin/python","pdf2png.py",output_dir],cwd="/root/HiPRGen",)
 
 
     elif method_type.contact.type == "SMILES_input":
@@ -54,8 +57,7 @@ def SCORING_func(output_dir,
               --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
               --observed_molecule_smiles_list_file observed_molecule_smiles_list.txt  ")
 
-        process=subprocess.Popen(args=["/root/miniconda3/bin/python","pdf2png.py",output_dir],cwd="/root/HiPRGen",)
-
+        interfacial_reaction_pdf2png(output_dir)
 
     elif method_type.contact.type == "find_LIBE_ID_by_formula_alphabetical":
         formula_alphabetical_list = method_type.contact.formula_alphabetical_list.replace(" ", "_")
