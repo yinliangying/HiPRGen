@@ -7,7 +7,13 @@ from dp.launching.typing.io import InputMoleculeContent
 #添加pathonpath
 os.environ["PATH"] = os.environ["PATH"] + ":/root/HiPRGen/"
 from pdf2png import interfacial_reaction_pdf2png
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] [%(name)s]  %(funcName)s  %(lineno)d- %(message)s')
+
+logger = logging.getLogger(__name__)
 def SCORING_func(output_dir,
                  method_type,
                  ):
@@ -20,17 +26,22 @@ def SCORING_func(output_dir,
         init_molecule_libe_id_list = method_type.contact.init_molecule_libe_id_list
 
         if observed_molecule_libe_id_list == "":
-            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
+            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type libe_id  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list}  \
-            ")
+            "
+            logger.info(shell_str)
+            os.system(shell_str)
         else:
-            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
+            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type libe_id  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list} --observed_molecule_libe_id_list {observed_molecule_libe_id_list} \
-            ")
+            "
+            logger.info(shell_str)
+            os.system(shell_str)
+        logger.info("interfacial_reaction_pdf2png:%s"%output_dir)
         interfacial_reaction_pdf2png(output_dir)
 
 
@@ -45,17 +56,22 @@ def SCORING_func(output_dir,
 
         #old
         if observed_molecule_smiles_list == "":
-            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
+            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type SMILES  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
-            ")
+            "
+            logger.info(shell_str)
+            os.system(shell_str)
         else:
-            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
+            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type SMILES  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
               --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
-              --observed_molecule_smiles_list_file observed_molecule_smiles_list.txt  ")
+              --observed_molecule_smiles_list_file observed_molecule_smiles_list.txt  "
+            logger.info(shell_str)
+            os.system(shell_str)
+        logger.info("interfacial_reaction_pdf2png:%s" % output_dir)
 
         interfacial_reaction_pdf2png(output_dir)
 
