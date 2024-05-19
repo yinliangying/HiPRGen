@@ -4,7 +4,7 @@ from dp.launching.typing import List, BaseModel, Field, OutputDirectory, InputFi
     Field, Enum
 from dp.launching.typing.io import InputMoleculeContent
 
-
+from pdf2image import interfacial_reaction_pdf2png
 
 def SCORING_func(output_dir,
                  method_type,
@@ -29,6 +29,9 @@ def SCORING_func(output_dir,
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list} --observed_molecule_libe_id_list {observed_molecule_libe_id_list} \
             ")
+        interfacial_reaction_pdf2png(output_dir)
+
+
 
     elif method_type.contact.type == "SMILES_input":
         observed_molecule_smiles_list = method_type.contact.observed_molecule_smiles_list
@@ -52,7 +55,7 @@ def SCORING_func(output_dir,
               --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
               --observed_molecule_smiles_list_file observed_molecule_smiles_list.txt  ")
 
-
+        interfacial_reaction_pdf2png(output_dir)
 
     elif method_type.contact.type == "find_LIBE_ID_by_formula_alphabetical":
         formula_alphabetical_list = method_type.contact.formula_alphabetical_list.replace(" ", "_")
