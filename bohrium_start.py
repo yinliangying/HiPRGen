@@ -339,7 +339,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
 
     logger.info('Here again')
 
-    logger.info("WORKDIR:"% work_dir )
+    logger.info("WORKDIR:%s"% work_dir )
     os.system("ls %s" % (work_dir))
     # The network loader builds a python object around a reaction network
     # and the molecules to make it easier to use them.
@@ -372,7 +372,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
 
     # Run `pdflatex reaction_tally.tex` in `scratch/li_test` to generate
     # the tally report PDF.
-    logger.info("WORKDIR:"% work_dir )
+    logger.info("WORKDIR:%s" % work_dir)
     os.system("ls %s" % (work_dir))
     # The species report shows every specie in the network and their IDs.
     species_report(network_loader, work_dir + '/species_report.tex')
@@ -404,7 +404,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
     os.system("cd %s && pdflatex sink_report.tex " % (work_dir,))
     # Run `pdflatex sink_report.tex` in `scratch/li_test` to generate
     # the sink report PDF.
-    logger.info("WORKDIR:"% work_dir )
+    logger.info("WORKDIR:%s"% work_dir )
     os.system("ls %s" % (work_dir))
 
     for an_observed_molecule in observed_molecule_list:
