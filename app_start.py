@@ -38,9 +38,9 @@ def SCORING_func(output_dir,
         observed_molecule_smiles_list = method_type.contact.observed_molecule_smiles_list
         init_molecule_smiles_list = method_type.contact.init_molecule_smiles_list
         with open("init_molecule_smiles_list.txt","w") as init_molecule_smiles_list_fp:
-            init_molecule_smiles_list_fp.write(observed_molecule_smiles_list)
+            init_molecule_smiles_list_fp.write(init_molecule_smiles_list)
         with open("observed_molecule_smiles_list.txt","w") as observed_molecule_smiles_list_fp:
-            observed_molecule_smiles_list_fp.write(init_molecule_smiles_list)
+            observed_molecule_smiles_list_fp.write(observed_molecule_smiles_list)
 
         #old
         if observed_molecule_smiles_list == "":
