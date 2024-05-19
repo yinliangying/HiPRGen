@@ -52,4 +52,7 @@ def interfacial_reaction_pdf2png(outputs_dir):
 
 
 if __name__ == "__main__":
-    interfacial_reaction_pdf2png("/personal/Bohrium_task_hiprgen/outputs_papercase_tansuanyisizhi")
+    import sys
+
+    logger.info(sys.argv[1])
+    interfacial_reaction_pdf2png(sys.argv[1])
