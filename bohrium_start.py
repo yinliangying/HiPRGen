@@ -361,7 +361,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
     report_generator = ReportGenerator(
         network_loader.mol_entries,
         work_dir + '/dummy.tex',
-        rebuild_mol_pictures=False) #不生成分子图片，节省时间
+        rebuild_mol_pictures=True)
 
     # The tally report shows reactions sorted by the number of times fired.
     reaction_tally_report(
