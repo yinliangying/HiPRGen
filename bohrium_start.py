@@ -43,6 +43,11 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] [%(name)s] - %(message)s')
+
 logger = logging.getLogger(__name__)
 def smile_to_inchi(smile):
     mol = Chem.MolFromSmiles(smile)
@@ -113,17 +118,7 @@ class bcolors:
 # subprocess.run(['mkdir', './scratch'])
 
 
-def gen_network(network_json_path, number_of_threads=0):
-    network_json_dir, network_json_filename = os.path.split(network_json_path)
-    network_folder_name = network_json_filename.split(".")[0]
-    network_folder = os.path.join(network_json_dir, network_folder_name)
-
-    mol_entries_pickle_path = network_folder + '/mol_entries.pickle'
-    if os.path.exists(mol_entries_pickle_path):
-        with open(mol_entries_pickle_path, "rb") as pickle_file:
-            mol_entries = pickle.load(pickle_file)
-        logger.info("len(mol_entries):%s"%len(mol_entries))
-        return mol_entries
+def gen_network(network_json_path,network_folder):
 
     if not os.path.exists(network_folder):
         os.system("mkdir -p %s" % (network_folder))
@@ -145,16 +140,22 @@ def gen_network(network_json_path, number_of_threads=0):
     # the species filtering phase is messy, so ignore the species_report
     # argument for now. The second argument is where we store a pickle of
     # the filtered molecule entries for use in later phases.
-    if os.path.exists(network_folder + '/mol_entries.pickle'):
-        os.system("rm %s" % network_folder + '/mol_entries.pickle')
-        os.system("rm %s" % network_folder + '/unfiltered_species_report.tex')
-    mol_entries = species_filter(
-        database_entries,
-        mol_entries_pickle_location=network_folder + '/mol_entries.pickle',
-        species_report=network_folder + '/unfiltered_species_report.tex',
-        species_decision_tree=species_decision_tree,
-        coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
-    )
+    # if os.path.exists(network_folder + '/mol_entries.pickle'):
+    #     os.system("rm %s" % network_folder + '/mol_entries.pickle')
+    #     os.system("rm %s" % network_folder + '/unfiltered_species_report.tex')
+    if not os.path.exists(network_folder + '/mol_entries.pickle'):
+        mol_entries = species_filter(
+            database_entries,
+            mol_entries_pickle_location=network_folder + '/mol_entries.pickle',
+            species_report=network_folder + '/unfiltered_species_report.tex',
+            species_decision_tree=species_decision_tree,
+            coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
+        )
+    else:
+        with open(network_folder + '/mol_entries.pickle', "rb") as pickle_file:
+            mol_entries = pickle.load(pickle_file)
+        logger.info("len(mol_entries):%s" % len(mol_entries))
+
     # add smiles info
 
     os.system(f"mkdir {network_folder}/xyz")
@@ -257,7 +258,7 @@ def gen_network(network_json_path, number_of_threads=0):
                 '-n',
                 number_of_threads,
                 'python',
-                '/root/HiPRGen/run_network_generation.py',
+                'run_network_generation.py',
                 network_folder + '/mol_entries.pickle',
                 network_folder + '/dispatcher_payload.json',
                 network_folder + '/worker_payload.json'
@@ -276,12 +277,7 @@ def li_run(network_json_path, network_folder, work_dir, init_molecule_list,
     :param work_dir: it must not exist
     :return:
     """
-    if observed_molecule_list != '':
-        observed_molecule_list = observed_molecule_list.get_value().split(',')
-    if init_molecule_list != '':
-        init_molecule_list = init_molecule_list.get_value().split(',')
-
-    mol_entries = gen_network(network_json_path, number_of_threads=number_of_threads)
+    mol_entries = gen_network(network_json_path,network_folder)
 
     # os.system("mkdir -p %s" % (work_dir))
 
@@ -453,8 +449,8 @@ if __name__ == '__main__':
     parser.add_argument('--init_molecule_libe_id_list', default="", type=str)  # EC_id libe-115834
     parser.add_argument('--observed_molecule_libe_id_list', default="", type=str)  # LEDC_id libe-115795
     # if molecule_type="SMILES" or "smiles"
-    parser.add_argument('--init_molecule_smiles_list', default="", type=str)  # EC_id libe-115834
-    parser.add_argument('--observed_molecule_smiles_list', default="", type=str)  # LEDC_id libe-115795
+    parser.add_argument('--init_molecule_smiles_list_file', default="", type=str)  #
+    parser.add_argument('--observed_molecule_smiles_list_file', default="", type=str)  #
 
     # if molecule_type=="find_formula"
     parser.add_argument('--find_libe_id_by_formula_alphabetical_list', default="", type=str)  # split by ,
@@ -484,37 +480,43 @@ if __name__ == '__main__':
         else:
             observed_molecule_libe_id_list = args.observed_molecule_libe_id_list.split(",")
 
-        li_run(network_json_path=network_json_path, network_folder=network_folder, work_dir=work_dir,
+        li_run(network_json_path=network_json_path,network_folder=network_folder, work_dir=work_dir,
                init_molecule_list=init_molecule_libe_id_list,
                observed_molecule_list=observed_molecule_libe_id_list, molecule_type="libe_id")
 
     elif args.molecule_type == "SMILES" or args.molecule_type == "smiles":
 
-        if len(args.init_molecule_smiles_list) == 0:
-            with open(f"{work_dir}/ERROR.log", "w") as fp:
-                print(" len(args.init_molecule_smiles_list)==0", file=fp)
+        if args.init_molecule_smiles_list_file=="":
+            logger.error(" len(args.init_molecule_smiles_list_file)==0")
             raise Exception("len(args.init_molecule_smiles_list)==0")
-        init_molecule_smiles_list = []
-        for smiles in args.init_molecule_smiles_list.split("."):
-            mol = AllChem.MolFromSmiles(smiles)
-            if not mol:
-                with open(f"{work_dir}/ERROR.log", "w") as fp:
-                    print(f"init_molecule_smiles_list :{smiles} error ", file=fp)
-                raise Exception(f"init_molecule_smiles_list :{smiles} error ")
-            init_molecule_smiles_list.append(AllChem.MolToSmiles(mol))
+        with open(args.init_molecule_smiles_list_file, "r") as fp:
 
-        if len(args.observed_molecule_smiles_list) == 0:
-            observed_molecule_smiles_list = []
-        else:
-            observed_molecule_smiles_list = []
-            for smiles in args.observed_molecule_smiles_list.split("."):
+            init_molecule_smiles_list = []
+            line = fp.read()
+            for smiles in line.split("."):
                 mol = AllChem.MolFromSmiles(smiles)
                 if not mol:
-                    with open(f"{work_dir}/ERROR.log", "w") as fp:
-                        print(f"observed_molecule_smiles_list :{smiles} error ", file=fp)
-                    raise Exception(f"observed_molecule_smiles_list :{smiles} error ")
-                observed_molecule_smiles_list.append(AllChem.MolToSmiles(mol))
+                    logger.error(f"init_molecule_smiles_list :{smiles} error" )
+                    raise Exception(f"init_molecule_smiles_list :{smiles} error ")
+            init_molecule_smiles_list.append(AllChem.MolToSmiles(mol))
 
+
+        if  args.observed_molecule_smiles_list_file == "":
+            logger.info(" no observed_molecule_smiles_list_file ")
+            observed_molecule_smiles_list = []
+        else:
+            with open(args.observed_molecule_smiles_list_file, "r") as fp:
+
+                observed_molecule_smiles_list = []
+                line = fp.read()
+                for smiles in line.split("."):
+                    mol = AllChem.MolFromSmiles(smiles)
+                    if not mol:
+                        logger.error(f"observed_molecule_smiles_list :{smiles} error")
+                        raise Exception(f"observed_molecule_smiles_list :{smiles} error ")
+                observed_molecule_smiles_list.append(AllChem.MolToSmiles(mol))
+        logger.info(f"init_molecule_smiles_list:{init_molecule_smiles_list}")
+        logger.info(f"observed_molecule_smiles_list:{observed_molecule_smiles_list}")
         li_run(network_json_path=network_json_path, network_folder=network_folder, work_dir=work_dir,
                init_molecule_list=init_molecule_smiles_list,
                observed_molecule_list=observed_molecule_smiles_list, molecule_type="smiles")

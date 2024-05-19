@@ -8,13 +8,7 @@ from dp.launching.typing import List, BaseModel, Field, OutputDirectory, InputFi
     Field, Enum
 from dp.launching.typing.io import InputMoleculeContent
 
-import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] [%(levelname)s] [%(name)s] - %(message)s')
-
-logger = logging.getLogger(__name__)
 
 def SCORING_func(output_dir,
                  method_type,
@@ -42,28 +36,26 @@ def SCORING_func(output_dir,
     elif method_type.contact.type == "SMILES_input":
         observed_molecule_smiles_list = method_type.contact.observed_molecule_smiles_list
         init_molecule_smiles_list = method_type.contact.init_molecule_smiles_list
+        with open("init_molecule_smiles_list.txt","w") as init_molecule_smiles_list_fp:
+            init_molecule_smiles_list_fp.write(observed_molecule_smiles_list)
+        with open("observed_molecule_smiles_list.txt","w") as observed_molecule_smiles_list_fp:
+            observed_molecule_smiles_list_fp.write(init_molecule_smiles_list)
 
-        import sys
+        #old
+        if observed_molecule_smiles_list == "":
+            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
+            --network_json_path  {network_json_path}  --molecule_type SMILES  \
+            --number_of_threads {number_of_threads} --work_dir  {output_dir} \
+             --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
+            ")
+        else:
+            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
+            --network_json_path  {network_json_path}  --molecule_type SMILES  \
+            --number_of_threads {number_of_threads} --work_dir  {output_dir} \
+              --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
+              --observed_molecule_smiles_list_file observed_molecule_smiles_list.txt  ")
 
-        sys.path.append('/root/HiPRGen')
 
-        from bohrium_start import li_run
-
-        # os.system(' . /root/HiPRGen/nix_env.sh')
-        network_json_dir, network_json_filename = os.path.split(network_json_path)
-        network_folder_name = network_json_filename.split(".")[0]
-        network_folder = os.path.join(network_json_dir, network_folder_name)
-        work_dir = os.path.abspath(output_dir)
-        os.makedirs(work_dir, exist_ok=True)
-        error_log = os.path.join(work_dir, r'ERROR.log')
-        with open(error_log, 'w') as f:
-            f.write('\n')
-        logger.info("work_dir:%s"%(work_dir))
-        logger.info("number_of_threads:%s"%number_of_threads)
-        li_run(network_json_path=network_json_path, network_folder=network_folder,
-               init_molecule_list=init_molecule_smiles_list, work_dir=work_dir,
-               observed_molecule_list=observed_molecule_smiles_list,
-               molecule_type='SMILES', number_of_threads=number_of_threads)
 
     elif method_type.contact.type == "find_LIBE_ID_by_formula_alphabetical":
         formula_alphabetical_list = method_type.contact.formula_alphabetical_list.replace(" ", "_")
