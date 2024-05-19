@@ -13,7 +13,7 @@ from dp.launching.typing.io import InputMoleculeContent
 def SCORING_func(output_dir,
                  method_type,
                  ):
-    HiPRGen_dir="/root/Uni-Electrolyte/interfacial_reaction/HiPRGen"
+    HiPRGen_dir="/root/HiPRGen"
     network_json_path = "%s/data/libe.json"%(HiPRGen_dir)
     os.system("mkdir -p %s" % (output_dir))
     number_of_threads = os.popen("nproc").read().strip()  # os.system("nproc")
