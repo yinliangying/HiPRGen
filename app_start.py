@@ -13,7 +13,8 @@ from dp.launching.typing.io import InputMoleculeContent
 def SCORING_func(output_dir,
                  method_type,
                  ):
-    network_json_path = "/root/HiPRGen/data/libe.json"
+    HiPRGen_dir="/root/Uni-Electrolyte/interfacial_reaction/HiPRGen"
+    network_json_path = "%s/data/libe.json"%(HiPRGen_dir)
     os.system("mkdir -p %s" % (output_dir))
     number_of_threads = os.popen("nproc").read().strip()  # os.system("nproc")
     if method_type.contact.type == "LIBE_ID_input":
@@ -21,13 +22,13 @@ def SCORING_func(output_dir,
         init_molecule_libe_id_list = method_type.contact.init_molecule_libe_id_list
 
         if observed_molecule_libe_id_list == "":
-            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
+            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type libe_id  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list}  \
             ")
         else:
-            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
+            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type libe_id  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list} --observed_molecule_libe_id_list {observed_molecule_libe_id_list} \
@@ -43,13 +44,13 @@ def SCORING_func(output_dir,
 
         #old
         if observed_molecule_smiles_list == "":
-            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
+            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type SMILES  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
             ")
         else:
-            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
+            os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type SMILES  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
               --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
@@ -59,7 +60,7 @@ def SCORING_func(output_dir,
 
     elif method_type.contact.type == "find_LIBE_ID_by_formula_alphabetical":
         formula_alphabetical_list = method_type.contact.formula_alphabetical_list.replace(" ", "_")
-        os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
+        os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
                     --network_json_path  {network_json_path}  --molecule_type find_formula  \
                     --number_of_threads {number_of_threads} --work_dir  {output_dir} \
                     --find_libe_id_by_formula_alphabetical_list {formula_alphabetical_list} \
