@@ -155,6 +155,7 @@ def gen_network(network_json_path,network_folder):
         with open(network_folder + '/mol_entries.pickle', "rb") as pickle_file:
             mol_entries = pickle.load(pickle_file)
         logger.info("len(mol_entries):%s" % len(mol_entries))
+        return mol_entries
 
     # add smiles info
 

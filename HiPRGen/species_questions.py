@@ -28,6 +28,7 @@ for non terminal nodes, it is an error if every question returns False. i.e gett
 Once a Terminal node is reached, it tells us whether to keep or discard the species.
 """
 
+
 def run_decision_tree(mol_entry,
                       decision_tree,
                       decision_pathway=None):
@@ -362,6 +363,9 @@ class set_solvation_free_energy(MSONable):
                 effective_charge = "_1"
             elif partial_charge >= 1.2:
                 effective_charge = "_2"
+
+            if species == 'Li' and effective_charge  == '_2':
+                continue
 
             coordination_partners = list()
             species_charge = species + effective_charge

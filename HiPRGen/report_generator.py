@@ -67,19 +67,22 @@ def visualize_molecules(mol_entries, folder):
 
 
 class ReportGenerator:
-
     def __init__(
             self,
             mol_entries,
             report_file_path,
+            fixed_mol_pictures_folder=None,
             mol_pictures_folder_name='mol_pictures',
-            rebuild_mol_pictures=True
+            rebuild_mol_pictures=False,
     ):
         self.report_file_path = Path(report_file_path)
-        self.mol_pictures_folder_name = mol_pictures_folder_name
-        self.mol_pictures_folder = self.report_file_path.parent.joinpath(
-            mol_pictures_folder_name)
 
+        if fixed_mol_pictures_folder:
+            self.mol_pictures_folder = fixed_mol_pictures_folder
+            self.mol_pictures_folder_name = fixed_mol_pictures_folder
+        else:
+            self.mol_pictures_folder = self.report_file_path.parent.joinpath(mol_pictures_folder_name)
+            self.mol_pictures_folder_name = mol_pictures_folder_name
 
         if rebuild_mol_pictures:
             visualize_molecules(mol_entries, self.mol_pictures_folder)

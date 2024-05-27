@@ -21,8 +21,6 @@ def find_mol_entry_from_xyz_and_charge(mol_entries, xyz_file_path, charge):
     index = -1
     while not match:
         index += 1
-        if index >= len(mol_entries):
-            break
         mol_entry = mol_entries[index]
         species_mol_graph = mol_entry.mol_graph
 
