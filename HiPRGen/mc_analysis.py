@@ -1,15 +1,16 @@
-from HiPRGen.report_generator import ReportGenerator
-from HiPRGen.network_renderer import Renderer
-from HiPRGen.network_loader import NetworkLoader
-from HiPRGen.constants import ROOM_TEMP, KB
-from HiPRGen.reaction_questions import marcus_barrier
-from monty.serialization import dumpfn
 import math
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 from itertools import chain
 from multiprocessing import Pool
+
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import numpy as np
+from HiPRGen.constants import ROOM_TEMP, KB
+from HiPRGen.network_renderer import Renderer
+from HiPRGen.reaction_questions import marcus_barrier
+from HiPRGen.report_generator import ReportGenerator
+from monty.serialization import dumpfn
+
 
 def default_cost(free_energy):
     return math.exp(min(10.0, free_energy) / (ROOM_TEMP * KB)) + 1
@@ -29,7 +30,6 @@ def render_species(network_loader, path):
     for species_id in range(network_loader.number_of_species):
         if network_loader.initial_state_array[species_id] > 0:
             starting_species_count += 1
-
 
     left_angle_counter_step = 0.1
     left_angle_counter = math.pi + compute_starting_angle(
@@ -55,8 +55,6 @@ def render_species(network_loader, path):
     renderer.render(path)
 
 
-
-
 def render_reactions_which_fired(network_loader, colors, path):
     renderer = Renderer()
     reactions_which_fired = set()
@@ -70,7 +68,6 @@ def render_reactions_which_fired(network_loader, colors, path):
     for species_id in range(network_loader.number_of_species):
         if network_loader.initial_state_array[species_id] > 0:
             starting_species_count += 1
-
 
     left_angle_counter_step = 0.1
     left_angle_counter = math.pi + compute_starting_angle(
@@ -122,8 +119,6 @@ def render_reactions_which_fired_new_positions(network_loader, colors, path):
         if network_loader.initial_state_array[species_id] > 0:
             starting_species_count += 1
 
-
-
     left_angle_counter_step = 0.1
     left_angle_counter = math.pi + compute_starting_angle(
         starting_species_count,
@@ -149,8 +144,6 @@ def render_reactions_which_fired_new_positions(network_loader, colors, path):
         else:
             renderer.new_node(species_id)
 
-
-
     for reaction_id in reactions_which_fired:
         print(reaction_id)
         reaction = network_loader.index_to_reaction(reaction_id)
@@ -172,9 +165,8 @@ def render_reactions_which_fired_new_positions(network_loader, colors, path):
     renderer.render(path)
 
 
-
 class PathfindingTransfer:
-    def __init__(self,pathfinding,threshold):
+    def __init__(self, pathfinding, threshold):
         self.pathfinding = pathfinding
         self.threshold = threshold
 
@@ -190,7 +182,7 @@ class PathfindingTransfer:
 
 
 def render_top_highlighted(pathfinding, colors, output_path, purple_id, num_threads=8, threshold=5):
-    renderer = Renderer(colors=[(0.7,0.7,0.7)])
+    renderer = Renderer(colors=[(0.7, 0.7, 0.7)])
     reactions_in_top_pathways = set()
     species_in_top_pathways = set()
 
@@ -217,12 +209,10 @@ def render_top_highlighted(pathfinding, colors, output_path, purple_id, num_thre
             product_id = reaction['products'][j]
             species_in_top_pathways.add(product_id)
 
-
     starting_species_count = 0
     for species_id in range(pathfinding.network_loader.number_of_species):
         if pathfinding.network_loader.initial_state_array[species_id] > 0:
             starting_species_count += 1
-
 
     left_angle_counter_step = 0.1
     left_angle_counter = math.pi + compute_starting_angle(
@@ -249,7 +239,6 @@ def render_top_highlighted(pathfinding, colors, output_path, purple_id, num_thre
         else:
             renderer.new_node(species_id)
 
-
     for reaction_id in reactions_in_top_pathways:
         print(reaction_id)
         reaction = pathfinding.network_loader.index_to_reaction(reaction_id)
@@ -266,9 +255,7 @@ def render_top_highlighted(pathfinding, colors, output_path, purple_id, num_thre
             for j in range(reaction['number_of_products']):
                 reactant_id = reaction['reactants'][i]
                 product_id = reaction['products'][j]
-                renderer.draw_edge(reactant_id, product_id,color=purple,width=0.003)
-
-
+                renderer.draw_edge(reactant_id, product_id, color=purple, width=0.003)
 
     for species_id in species_in_top_pathways:
 
@@ -280,7 +267,6 @@ def render_top_highlighted(pathfinding, colors, output_path, purple_id, num_thre
             renderer.draw_node(species_id)
 
     renderer.render(output_path)
-
 
 
 def render_top_pathways(pathfinding, colors, output_path, num_threads=8, threshold=5):
@@ -305,12 +291,10 @@ def render_top_pathways(pathfinding, colors, output_path, num_threads=8, thresho
             product_id = reaction['products'][j]
             species_in_top_pathways.add(product_id)
 
-
     starting_species_count = 0
     for species_id in range(pathfinding.network_loader.number_of_species):
         if pathfinding.network_loader.initial_state_array[species_id] > 0:
             starting_species_count += 1
-
 
     left_angle_counter_step = 0.1
     left_angle_counter = math.pi + compute_starting_angle(
@@ -337,7 +321,6 @@ def render_top_pathways(pathfinding, colors, output_path, num_threads=8, thresho
         else:
             renderer.new_node(species_id)
 
-
     for reaction_id in reactions_in_top_pathways:
         print(reaction_id)
         reaction = pathfinding.network_loader.index_to_reaction(reaction_id)
@@ -346,7 +329,6 @@ def render_top_pathways(pathfinding, colors, output_path, num_threads=8, thresho
                 reactant_id = reaction['reactants'][i]
                 product_id = reaction['products'][j]
                 renderer.draw_edge(reactant_id, product_id)
-
 
     for species_id in species_in_top_pathways:
 
@@ -365,7 +347,6 @@ def redox_report(
         redox_report_path,
         params
 ):
-
     redox_reactions = network_loader.get_all_redox_reactions()
 
     for r in redox_reactions:
@@ -387,14 +368,12 @@ def redox_report(
     report_generator.finished()
 
 
-
 def coordination_report(
         network_loader,
         coordination_report_path,
         formula,
         charge
 ):
-
     for m in network_loader.mol_entries:
         if m.formula == formula and m.charge == charge:
             metal_id = m.ind
@@ -419,7 +398,6 @@ def decoordination_report(
         formula,
         charge
 ):
-
     for m in network_loader.mol_entries:
         if m.formula == formula and m.charge == charge:
             metal_id = m.ind
@@ -439,9 +417,6 @@ def decoordination_report(
     report_generator.finished()
 
 
-
-
-
 def export_tally_to_json(network_loader, path):
     reaction_tally = {}
     reactions = {}
@@ -450,18 +425,17 @@ def export_tally_to_json(network_loader, path):
             reaction_id = network_loader.trajectories[seed][step][0]
 
             db_reaction = network_loader.index_to_reaction(reaction_id)
-            json_reactants = [ network_loader.mol_entries[i].entry_id
-                               for i in db_reaction['reactants'] if i != -1]
-            json_products = [ network_loader.mol_entries[i].entry_id
-                              for i in db_reaction['products'] if i != -1]
+            json_reactants = [network_loader.mol_entries[i].entry_id
+                              for i in db_reaction['reactants'] if i != -1]
+            json_products = [network_loader.mol_entries[i].entry_id
+                             for i in db_reaction['products'] if i != -1]
             json_reaction = {
-                'reactants' : json_reactants,
-                'products' : json_products
+                'reactants': json_reactants,
+                'products': json_products
             }
 
             if reaction_id not in reactions:
                 reactions[reaction_id] = json_reaction
-
 
             if reaction_id in reaction_tally:
                 reaction_tally[reaction_id] += 1
@@ -469,18 +443,15 @@ def export_tally_to_json(network_loader, path):
                 reaction_tally[reaction_id] = 1
 
     dumpfn({
-        'pathways' : reaction_tally,
-        'reactions' : reactions}, path)
-
-
-
+        'pathways': reaction_tally,
+        'reactions': reactions}, path)
 
 
 def reaction_tally_report(
         network_loader,
         reaction_tally_report_path,
+        fixed_mol_pictures_folder,
         cutoff=10):
-
     reaction_tally = {}
     species_set = set()
     for seed in network_loader.trajectories:
@@ -502,12 +473,11 @@ def reaction_tally_report(
                 product_id = reaction['products'][j]
                 species_set.add(product_id)
 
-
-
     report_generator = ReportGenerator(
-        network_loader.mol_entries,
-        reaction_tally_report_path,
-        rebuild_mol_pictures=False)
+        mol_entries=network_loader.mol_entries,
+        report_file_path=reaction_tally_report_path,
+        fixed_mol_pictures_folder=fixed_mol_pictures_folder
+    )
 
     report_generator.emit_text("reaction tally report")
     report_generator.emit_text(
@@ -523,7 +493,6 @@ def reaction_tally_report(
         "number of species observed: " +
         str(len(species_set)))
 
-
     for (reaction_index, number) in sorted(
             reaction_tally.items(), key=lambda pair: -pair[1]):
         if number > cutoff:
@@ -535,6 +504,7 @@ def reaction_tally_report(
             report_generator.emit_newline()
 
     report_generator.finished()
+
 
 def species_report(network_loader, species_report_path):
     """
@@ -557,6 +527,7 @@ def species_report(network_loader, species_report_path):
 
     report_generator.finished()
 
+
 def reaction_report(network_loader, reaction_report_path):
     """
     print all reactions. Warning: don't do this for a big network
@@ -573,9 +544,6 @@ def reaction_report(network_loader, reaction_report_path):
         report_generator.emit_newline()
 
     report_generator.finished()
-
-
-
 
 
 class Pathfinding:
@@ -637,7 +605,6 @@ class Pathfinding:
         self.network_loader = network_loader
         self.pathways = {}
 
-
     def compute_pathway(
             self,
             species_id,
@@ -656,7 +623,6 @@ class Pathfinding:
         if target_produced:
             pathway.append(reaction_id)
 
-
             prefixes = []
             for i in range(reaction['number_of_reactants']):
                 reactant_id = reaction['reactants'][i]
@@ -670,16 +636,13 @@ class Pathfinding:
                         prefix[-1])
 
                     if (sorted(reaction['reactants']) ==
-                        sorted(prefix_final_reaction['products'])):
+                            sorted(prefix_final_reaction['products'])):
                         return prefix + pathway
 
             for prefix in prefixes:
                 pathway = prefix + pathway
 
-
         return pathway
-
-
 
     def compute_pathways(self, species_id):
 
@@ -699,9 +662,8 @@ class Pathfinding:
 
         return self.pathways[species_id]
 
-
     def collect_duplicate_pathways(
-        self, pathways
+            self, pathways
     ):
         pathway_dict = {}
         for pathway in pathways:
@@ -718,7 +680,6 @@ class Pathfinding:
 
         return pathway_dict
 
-
     def compute_path_weight(self, pathway):
         weight = 0.0
         for reaction_index in pathway:
@@ -727,44 +688,42 @@ class Pathfinding:
         return weight
 
 
-
 def export_pathways_to_json(pathfinding, species_id, path):
     pathways = pathfinding.compute_pathways(species_id)
     reactions = {}
     for pathway in pathways:
         for reaction_id in pathway:
             db_reaction = pathfinding.network_loader.index_to_reaction(reaction_id)
-            json_reactants = [ pathfinding.network_loader.mol_entries[i].entry_id
-                               for i in db_reaction['reactants'] if i != -1]
-            json_products = [ pathfinding.network_loader.mol_entries[i].entry_id
-                               for i in db_reaction['products'] if i != -1]
+            json_reactants = [pathfinding.network_loader.mol_entries[i].entry_id
+                              for i in db_reaction['reactants'] if i != -1]
+            json_products = [pathfinding.network_loader.mol_entries[i].entry_id
+                             for i in db_reaction['products'] if i != -1]
             json_reaction = {
-                'reactants' : json_reactants,
-                'products' : json_products
-                }
+                'reactants': json_reactants,
+                'products': json_products
+            }
             reactions[reaction_id] = json_reaction
 
     dumpfn({
-        'pathways' : list(pathways.values()),
-        'reactions' : reactions}, path)
-
+        'pathways': list(pathways.values()),
+        'reactions': reactions}, path)
 
 
 def generate_pathway_report(
         pathfinding,
         species_id,
         report_file_path,
+        fixed_mol_pictures_folder,
         number_of_pathways=100,
         sort_by_frequency=False
 ):
-
     report_generator = ReportGenerator(
-        pathfinding.network_loader.mol_entries,
-        report_file_path,
-        rebuild_mol_pictures=False)
+        mol_entries=pathfinding.network_loader.mol_entries,
+        report_file_path=report_file_path,
+        fixed_mol_pictures_folder=fixed_mol_pictures_folder
+    )
 
     pathways = pathfinding.compute_pathways(species_id)
-
 
     report_generator.emit_text("pathway report for")
     report_generator.emit_molecule(species_id)
@@ -792,7 +751,6 @@ def generate_pathway_report(
     else:
         def sort_function(item):
             return item[1]["weight"]
-
 
     count = 1
     for _, unique_pathway in sorted(pathways.items(), key=sort_function):
@@ -826,11 +784,9 @@ class SimulationReplayer:
     def __init__(self, network_loader):
         self.network_loader = network_loader
 
-
         self.compute_expected_final_state()
         self.compute_production_consumption_info()
         self.compute_sink_data()
-
 
     def compute_expected_final_state(self):
         self.expected_final_state = np.zeros(
@@ -856,7 +812,7 @@ class SimulationReplayer:
             self.expected_final_state += state
 
         self.expected_final_state = (
-            self.expected_final_state / len(self.network_loader.trajectories))
+                self.expected_final_state / len(self.network_loader.trajectories))
 
     def compute_production_consumption_info(self):
         self.consuming_reactions = {}
@@ -878,7 +834,6 @@ class SimulationReplayer:
                         self.consuming_reactions[reactant_index][reaction_index] = 1
                     else:
                         self.consuming_reactions[reactant_index][reaction_index] += 1
-
 
                 for j in range(reaction['number_of_products']):
                     product_index = reaction['products'][j]
@@ -912,17 +867,15 @@ class SimulationReplayer:
 
         return time_series
 
-
     def time_series_graph(
             self,
             seeds,
             species_of_interest,
             path,
-            colors = list(mcolors.TABLEAU_COLORS.values()),
-            styles = ['solid', 'dotted', 'dashed', 'dashdot'],
+            colors=list(mcolors.TABLEAU_COLORS.values()),
+            styles=['solid', 'dotted', 'dashed', 'dashdot'],
             internal_index_labels=True
     ):
-
 
         max_trajectory_length = 0
         for seed in seeds:
@@ -933,7 +886,7 @@ class SimulationReplayer:
         total_time_series = np.zeros(
             (max_trajectory_length, self.network_loader.number_of_species),
             dtype=int
-            )
+        )
 
         for seed in seeds:
             total_time_series += pad_time_series(
@@ -945,10 +898,9 @@ class SimulationReplayer:
         background_species = set()
         for index in range(self.network_loader.number_of_species):
             for step in range(max_trajectory_length):
-                if (total_time_series[step,index] > 0.1 and
-                    index not in species_of_interest):
+                if (total_time_series[step, index] > 0.1 and
+                        index not in species_of_interest):
                     background_species.add(index)
-
 
         line_dict = {}
         i = 0
@@ -958,41 +910,35 @@ class SimulationReplayer:
             line_dict[species_index] = (colors[r], styles[q])
             i += 1
 
-
         fig, (ax0, ax1, ax2) = plt.subplots(
             3, 1,
-            figsize=(5,10),
-            gridspec_kw={'height_ratios':[2,2,1]})
+            figsize=(5, 10),
+            gridspec_kw={'height_ratios': [2, 2, 1]})
 
         y_max = 0
         for step in range(total_time_series.shape[0]):
             for species_index in species_of_interest:
-                y_max = max(y_max, total_time_series[step,species_index])
+                y_max = max(y_max, total_time_series[step, species_index])
 
-        ax0.set_xlim([0,total_time_series.shape[0]])
-        ax0.set_ylim([0,y_max+1])
+        ax0.set_xlim([0, total_time_series.shape[0]])
+        ax0.set_ylim([0, y_max + 1])
 
-        ax1.set_xlim([0,total_time_series.shape[0]])
-        ax1.set_ylim([0,(y_max+1)/10])
-
+        ax1.set_xlim([0, total_time_series.shape[0]])
+        ax1.set_ylim([0, (y_max + 1) / 10])
 
         ticks = np.arange(0, total_time_series.shape[0])
         for i, species_index in enumerate(background_species):
             ax0.plot(ticks,
                      total_time_series[:, species_index],
-                     color=mcolors.hsv_to_rgb((0,0,0.9))
+                     color=mcolors.hsv_to_rgb((0, 0, 0.9))
                      )
 
             ax1.plot(ticks,
                      total_time_series[:, species_index],
-                     color=mcolors.hsv_to_rgb((0,0,0.9))
+                     color=mcolors.hsv_to_rgb((0, 0, 0.9))
                      )
 
-
-
         for species_index in species_of_interest:
-
-
             ax0.plot(ticks,
                      total_time_series[:, species_index],
                      color=line_dict[species_index][0],
@@ -1005,15 +951,12 @@ class SimulationReplayer:
                      linestyle=line_dict[species_index][1]
                      )
 
-
-
         # creating a legend
         ax2.yaxis.set_visible(False)
         ax2.xaxis.set_visible(False)
         ax2.set_axis_off()
-        ax2.set_xlim([0,1])
-        ax2.set_ylim([0,1])
-
+        ax2.set_xlim([0, 1])
+        ax2.set_ylim([0, 1])
 
         i = 0
         for species_index in species_of_interest:
@@ -1043,7 +986,6 @@ class SimulationReplayer:
 
         fig.savefig(path, transparent=True)
 
-
     def compute_sink_data(self):
         max_ratio = 1e10
         self.sink_data = {}
@@ -1058,7 +1000,6 @@ class SimulationReplayer:
             number_of_distinct_producing_reactions = len(
                 self.producing_reactions[i].keys())
 
-
             if number_of_consuming_reactions != 0:
                 ratio = number_of_producing_reactions / number_of_consuming_reactions
             else:
@@ -1067,15 +1008,15 @@ class SimulationReplayer:
             expected_value = self.expected_final_state[i]
 
             self.sink_data[i] = {
-                "species_index" : i,
-                "number_of_consuming_reactions" : number_of_consuming_reactions,
+                "species_index": i,
+                "number_of_consuming_reactions": number_of_consuming_reactions,
                 "number_of_distinct_consuming_reactions"
                 : number_of_distinct_consuming_reactions,
-                "number_of_producing_reactions" : number_of_producing_reactions,
+                "number_of_producing_reactions": number_of_producing_reactions,
                 "number_of_distinct_producing_reactions"
                 : number_of_distinct_producing_reactions,
-                "ratio" : ratio,
-                "expected_value" : expected_value
+                "ratio": ratio,
+                "expected_value": expected_value
             }
 
         self.sinks = [
@@ -1095,10 +1036,10 @@ class SimulationReplayer:
         expected_value = sink_data["expected_value"]
 
         mol = self.network_loader.mol_entries[species_index]
-        if (number_of_consuming_reactions + number_of_producing_reactions > 0  and
-            ratio > 1.5 and
-            expected_value > 0.1 and
-            mol.spin_multiplicity == 1):
+        if (number_of_consuming_reactions + number_of_producing_reactions > 0 and
+                ratio > 1.5 and
+                expected_value > 0.1 and
+                mol.spin_multiplicity == 1):
             return True
         else:
             return False
@@ -1109,23 +1050,24 @@ def export_consumption_to_json(simulation_replayer, species_index, path):
     producing_reactions = simulation_replayer.producing_reactions[species_index]
     consuming_reactions = simulation_replayer.consuming_reactions[species_index]
     reactions = {}
-    for reaction_id in chain(producing_reactions, consuming_reactions) :
+    for reaction_id in chain(producing_reactions, consuming_reactions):
         db_reaction = network_loader.index_to_reaction(reaction_id)
-        json_reactants = [ network_loader.mol_entries[i].entry_id
-                           for i in db_reaction['reactants'] if i != -1]
-        json_products = [ network_loader.mol_entries[i].entry_id
-                           for i in db_reaction['products'] if i != -1]
+        json_reactants = [network_loader.mol_entries[i].entry_id
+                          for i in db_reaction['reactants'] if i != -1]
+        json_products = [network_loader.mol_entries[i].entry_id
+                         for i in db_reaction['products'] if i != -1]
         json_reaction = {
-            'reactants' : json_reactants,
-            'products' : json_products
-            }
+            'reactants': json_reactants,
+            'products': json_products
+        }
         reactions[reaction_id] = json_reaction
 
         dumpfn({
-            'reactions' : reactions,
-            'producing_reactions' : producing_reactions,
-            'consuming_reactions' : consuming_reactions},
-               path)
+            'reactions': reactions,
+            'producing_reactions': producing_reactions,
+            'consuming_reactions': consuming_reactions},
+            path)
+
 
 def pad_time_series(time_series, max_number_of_steps):
     num_steps = time_series.shape[0]
@@ -1138,10 +1080,9 @@ def pad_time_series(time_series, max_number_of_steps):
         if step < num_steps:
             padded_time_series[step] = time_series[step]
         else:
-            padded_time_series[step] = time_series[num_steps-1]
+            padded_time_series[step] = time_series[num_steps - 1]
 
     return padded_time_series
-
 
 
 def export_sinks_to_json(simulation_replayer, path):
@@ -1152,6 +1093,7 @@ def export_sinks_to_json(simulation_replayer, path):
         sink_data_json[mol.entry_id] = sink_data[i]
 
     dumpfn(sink_data_json, path)
+
 
 def export_species_report_to_json(network_loader, path):
     data = {}
@@ -1164,19 +1106,19 @@ def export_species_report_to_json(network_loader, path):
 def consumption_report(
         simulation_replayer,
         species_index,
+        fixed_mol_pictures_folder,
         consumption_report_path
 ):
-
     sink_data = simulation_replayer.sink_data[species_index]
 
     producing_reactions = simulation_replayer.producing_reactions[species_index]
     consuming_reactions = simulation_replayer.consuming_reactions[species_index]
 
     report_generator = ReportGenerator(
-        simulation_replayer.network_loader.mol_entries,
-        consumption_report_path,
-        rebuild_mol_pictures=False)
-
+        mol_entries=simulation_replayer.network_loader.mol_entries,
+        report_file_path=consumption_report_path,
+        fixed_mol_pictures_folder=fixed_mol_pictures_folder
+    )
 
     report_generator.emit_text("P/C ratio: " +
                                str(sink_data["ratio"]))
@@ -1187,45 +1129,40 @@ def consumption_report(
     for (reaction_index, number) in sorted(
             consuming_reactions.items(),
             key=lambda item: -item[1]):
-
         reaction = simulation_replayer.network_loader.index_to_reaction(
             reaction_index)
         report_generator.emit_text(str(number) + " occourances:")
         report_generator.emit_reaction(reaction)
-
 
     report_generator.emit_text("producing reactions:")
     for (reaction_index, number) in sorted(
             producing_reactions.items(),
             key=lambda item: -item[1]):
-
         reaction = simulation_replayer.network_loader.index_to_reaction(
             reaction_index)
 
         report_generator.emit_text(str(number) + " occourances:")
         report_generator.emit_reaction(reaction)
-
 
     report_generator.finished()
 
 
 def sink_report(
         simulation_replayer,
-        sink_report_path
-):
-
-
-    report_generator = ReportGenerator(
-        simulation_replayer.network_loader.mol_entries,
         sink_report_path,
-        rebuild_mol_pictures=False)
+        fixed_mol_pictures_folder
+):
+    report_generator = ReportGenerator(
+        mol_entries=simulation_replayer.network_loader.mol_entries,
+        report_file_path=sink_report_path,
+        fixed_mol_pictures_folder=fixed_mol_pictures_folder
+    )
 
     sinks_sorted = sorted(
         simulation_replayer.sinks,
-        key = lambda i: -simulation_replayer.sink_data[i]["ratio"])
+        key=lambda i: -simulation_replayer.sink_data[i]["ratio"])
 
     for species_index in sinks_sorted:
-
         sink_data = simulation_replayer.sink_data[species_index]
 
         number_of_consuming_reactions = sink_data[
@@ -1238,7 +1175,6 @@ def sink_report(
             "number_of_distinct_producing_reactions"]
         ratio = sink_data["ratio"]
         expected_value = sink_data["expected_value"]
-
 
         report_generator.emit_text("P/C ratio: " + str(ratio))
         report_generator.emit_text("expected val: " + str(expected_value))

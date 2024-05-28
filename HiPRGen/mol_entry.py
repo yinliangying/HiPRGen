@@ -184,8 +184,8 @@ class MoleculeEntry:
                 partial_charges_nbo = doc['partial_charges']['mulliken']
                 partial_spins_nbo = doc['partial_spins']['mulliken']
             else:
-                partial_charges_nbo = doc['partial_charges']['nbo']
-                partial_spins_nbo = doc['partial_spins']['nbo']
+                partial_charges_nbo = doc['partial_charges']['mulliken']
+                partial_spins_nbo = doc['partial_spins']['mulliken']
 
             electron_affinity_eV = None
             ionization_energy_eV = None

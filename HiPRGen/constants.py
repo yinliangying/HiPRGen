@@ -31,7 +31,8 @@ li_ec = {
     },
 
     "coordination_radius" : {
-        "Li_1" : 2.4
+        "Li_1" : 2.4,
+        "Li_2" : 0,
     },
 
     "max_number_of_coordination_bonds" : {
