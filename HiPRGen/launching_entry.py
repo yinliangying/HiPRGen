@@ -1,4 +1,4 @@
-from pdf2image import convert_from_path
+.from pdf2image import convert_from_path
 import os
 import pickle
 import sqlite3

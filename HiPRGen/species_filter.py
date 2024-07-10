@@ -85,8 +85,7 @@ def species_filter(
     log_message("starting species filter")
     log_message("loading molecule entries from json")
 
-    mol_entries_unfiltered = [
-        MoleculeEntry.from_dataset_entry(e) for e in dataset_entries ]
+    mol_entries_unfiltered = [MoleculeEntry.from_dataset_entry(e) for e in dataset_entries]
 
 
     log_message("generating unfiltered mol pictures")
@@ -94,7 +93,7 @@ def species_filter(
     report_generator = ReportGenerator(
         mol_entries_unfiltered,
         species_report,
-        mol_pictures_folder_name='mol_pictures_unfiltered',
+        mol_pictures_folder_name='mol_pictures',
         rebuild_mol_pictures=generate_unfiltered_mol_pictures
     )
 
@@ -108,7 +107,7 @@ def species_filter(
     # than other more realistic lithomers.
 
     for i, mol in enumerate(mol_entries_unfiltered):
-        log_message("filtering " + mol.entry_id)
+        log_message("filtering " + str(mol.entry_id))
         decision_pathway = []
         if run_decision_tree(mol, species_decision_tree, decision_pathway):
             mol_entries_filtered.append(mol)
@@ -119,7 +118,7 @@ def species_filter(
                 '\n'.join([str(f) for f in decision_pathway]))
 
             report_generator.emit_text("number: " + str(i))
-            report_generator.emit_text("entry id: " + mol.entry_id)
+            report_generator.emit_text("entry id: " + str(mol.entry_id))
             report_generator.emit_text("uncorrected free energy: " +
                                        str(mol.free_energy))
 
