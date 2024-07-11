@@ -158,8 +158,6 @@ class add_single_bond_fragments(MSONable):
         if mol.formula in m_formulas:
             return False
 
-
-
         for edge in mol.covalent_graph.edges:
             fragments = []
             h = copy.deepcopy(mol.covalent_graph)
@@ -455,6 +453,27 @@ li_species_decision_tree = [
     (mol_not_connected(), Terminal.DISCARD),
     (metal_complex(), Terminal.DISCARD),
     (spin_multiplicity_filter(0.4), Terminal.DISCARD),
+    (add_star_hashes(), Terminal.KEEP),
+    (add_unbroken_fragment(), Terminal.KEEP),
+    (add_single_bond_fragments(), Terminal.KEEP),
+    # (has_covalent_ring(), [
+    #     (covalent_ring_fragments(), Terminal.KEEP),
+    #     (species_default_true(), Terminal.KEEP)
+    # ]),
+    (species_default_true(), Terminal.KEEP)
+    ]
+
+no_species_decision_tree = [
+    (fix_hydrogen_bonding(), Terminal.KEEP),
+    (set_solvation_free_energy(li_ec), Terminal.KEEP),
+    # (charge_too_big(), Terminal.DISCARD),
+    # (neutral_metal_filter(0.1), Terminal.DISCARD),
+    (compute_graph_hashes, Terminal.KEEP),
+    # (metal_ion_filter(), Terminal.DISCARD),
+    # (bad_metal_coordination(), Terminal.DISCARD),
+    # (mol_not_connected(), Terminal.DISCARD),
+    # (metal_complex(), Terminal.DISCARD),
+    # (spin_multiplicity_filter(0.4), Terminal.DISCARD),
     (add_star_hashes(), Terminal.KEEP),
     (add_unbroken_fragment(), Terminal.KEEP),
     (add_single_bond_fragments(), Terminal.KEEP),

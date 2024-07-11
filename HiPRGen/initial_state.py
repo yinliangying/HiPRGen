@@ -10,6 +10,8 @@ def find_mol_entry_from_xyz_and_charge(mol_entries, xyz_file_path, charge):
     given a file 'molecule.xyz', find the mol_entry corresponding to the
     molecule graph with given charge
     """
+    print(xyz_file_path)
+
     target_mol_graph = MoleculeGraph.with_local_env_strategy(
         Molecule.from_file(xyz_file_path), OpenBabelNN()
     )
@@ -24,8 +26,9 @@ def find_mol_entry_from_xyz_and_charge(mol_entries, xyz_file_path, charge):
         mol_entry = mol_entries[index]
         species_mol_graph = mol_entry.mol_graph
 
-        if mol_entry.charge == charge:
-            match = target_mol_graph.isomorphic_to(species_mol_graph)
+        # if mol_entry.charge == charge:
+        #     match = target_mol_graph.isomorphic_to(species_mol_graph)
+        match = target_mol_graph.isomorphic_to(species_mol_graph)
 
     if match:
         return mol_entry.ind

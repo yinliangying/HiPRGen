@@ -161,12 +161,12 @@ def species_filter(
         return lowest_energy_coordimer
 
 
-    mol_entries = []
+    mol_entries = mol_entries_unfiltered
 
-    for tag_group in sort_into_tags(mol_entries_filtered).values():
-        for iso_group in groupby(really_covalent_isomorphic, tag_group):
-            mol_entries.append(
-                collapse_isomorphism_group(iso_group))
+    # for tag_group in sort_into_tags(mol_entries_filtered).values():
+    #     for iso_group in groupby(really_covalent_isomorphic, tag_group):
+    #         mol_entries.append(
+    #             collapse_isomorphism_group(iso_group))
 
 
     log_message("assigning indices")
