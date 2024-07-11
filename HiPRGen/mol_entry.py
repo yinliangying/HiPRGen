@@ -75,6 +75,7 @@ class MoleculeEntry:
             self.mol_graph = metal_edge_extender(mol_graph)
         else:
             self.mol_graph = mol_graph
+            self.graph = self.mol_graph.graph.to_undirected()
 
         self.partial_charges_resp = partial_charges_resp
         self.partial_charges_mulliken = partial_charges_mulliken
@@ -82,7 +83,6 @@ class MoleculeEntry:
         self.partial_spins_nbo = partial_spins_nbo
 
         self.molecule = self.mol_graph.molecule
-        self.graph = self.mol_graph.graph.to_undirected()
         self.species = [str(s) for s in self.molecule.species]
 
         self.m_inds = [
@@ -145,10 +145,7 @@ class MoleculeEntry:
                 "and 'qrrho'!"
             )
         try:
-            if isinstance(doc["molecule"], Molecule):
-                molecule = doc["molecule"]
-            else:
-                molecule = Molecule.from_dict(doc["molecule"])  # type: ignore
+            molecule = Molecule.from_dict(doc['molecule'])
 
             if (
                 thermo == "rrho_shifted"
@@ -164,37 +161,24 @@ class MoleculeEntry:
                 enthalpy = doc["thermo"]["quasi_rrho_eV"]["total_enthalpy"] * 23.061
                 entropy = doc["thermo"]["quasi_rrho_eV"]["total_entropy"] * 23061
             else:
-                energy = doc["thermo"]["raw"]["electronic_energy_Ha"]
-                enthalpy = doc["thermo"]["raw"]["total_enthalpy_kcal/mol"]
-                entropy = doc["thermo"]["raw"]["total_entropy_cal/molK"]
-
-            entry_id = doc["molecule_id"]
-
-            if isinstance(doc["molecule_graph"], MoleculeGraph):
-                mol_graph = doc["molecule_graph"]
-            else:
-                mol_graph = MoleculeGraph.from_dict(doc["molecule_graph"])
-
-            partial_charges_resp = doc['partial_charges']['resp']
-            partial_charges_mulliken = doc['partial_charges']['mulliken']
-            spin_multiplicity = doc['spin_multiplicity']
+                # print(doc['molecule']['properties'])
 
 
-            if doc['number_atoms'] == 1:
-                partial_charges_nbo = doc['partial_charges']['mulliken']
-                partial_spins_nbo = doc['partial_spins']['mulliken']
-            else:
-                partial_charges_nbo = doc['partial_charges']['mulliken']
-                partial_spins_nbo = doc['partial_spins']['mulliken']
+                energy = doc['molecule']['properties']["thermo"]["raw"]["electronic_energy_Ha"]
+                enthalpy = doc['molecule']['properties']["thermo"]["raw"]["total_enthalpy_kcal/mol"]
+                entropy = doc['molecule']['properties']["thermo"]["raw"]["total_entropy_cal/molK"]
+
+            entry_id = doc['molecule']['properties']["molecule_id"]
+
+            mol_graph = MoleculeGraph.from_dict(doc)
+
+            partial_charges_mulliken = doc['molecule']['properties']['partial_charges']['mulliken']
+            partial_charges_nbo = doc['molecule']['properties']['partial_charges']['nbo']
+            partial_spins_nbo = partial_charges_nbo
+            spin_multiplicity = doc['molecule']['properties']['mult']
 
             electron_affinity_eV = None
             ionization_energy_eV = None
-            if 'redox' in doc:
-                if 'electron_affinity_eV' in doc['redox']:
-                    electron_affinity_eV = doc['redox']['electron_affinity_eV']
-
-                if 'ionization_energy_eV' in doc['redox']:
-                    ionization_energy_eV = doc['redox']['ionization_energy_eV']
 
         except KeyError as e:
             raise Exception(
@@ -211,7 +195,7 @@ class MoleculeEntry:
             entropy=entropy,
             entry_id=entry_id,
             mol_graph=mol_graph,
-            partial_charges_resp=partial_charges_resp,
+            partial_charges_resp=partial_charges_nbo,
             partial_charges_mulliken=partial_charges_mulliken,
             partial_charges_nbo=partial_charges_nbo,
             electron_affinity=electron_affinity_eV,
