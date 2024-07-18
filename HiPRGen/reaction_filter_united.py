@@ -119,7 +119,7 @@ def dispatcher(
     rn_con = sqlite3.connect(dispatcher_payload.reaction_network_db_file)
     rn_cur = rn_con.cursor()
     rn_cur.execute(create_metadata_table)
-    rn_cur.execute(create_reactions_table)
+    #rn_cur.execute(create_reactions_table)
     rn_con.commit()
 
     log_message("initializing report generator")
@@ -146,7 +146,13 @@ def dispatcher(
 
     log_message("all workers running")
 
-    reaction_index = 0
+    #reaction_index = 0
+    res=rn_cur.execute("select count(*) from reactions")
+    for row in res:
+        reaction_index=row[0]
+    log_message("old reaction index:",reaction_index)
+
+
 
     log_message("handling requests")
 
@@ -310,6 +316,22 @@ def worker(
                 'products' : products,
                 'number_of_reactants' : len([i for i in reactants if i != -1]),
                 'number_of_products' : len([i for i in products if i != -1])}
+            reactants_source=None
+            if reactants[1]!=-1:
+                if mol_entries[reactants[0]].source=="OLD" and mol_entries[reactants[1]].source=="OLD":
+                    reactants_source="OLD"
+            else:
+                if mol_entries[reactants[0]].source=="OLD":
+                    reactants_source="OLD"
+            products_source=None
+            if products[1]!=-1:
+                if mol_entries[products[0]].source=="OLD" and mol_entries[products[1]].source=="OLD":
+                    products_source="OLD"
+            else:
+                if mol_entries[products[0]].source=="OLD":
+                    products_source="OLD"
+            if reactants_source=="OLD" and products_source=="OLD":
+                continue
 
 
             decision_pathway = []
