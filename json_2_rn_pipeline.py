@@ -145,7 +145,7 @@ if __name__ == '__main__':
     new_lib_path="new_lib"
     united_lib_path="united_lib"
 
-    new_lib_json_path=f"{new_lib_path}/real_dump.json"
+    new_lib_json_path=f"{new_lib_path}/sample.json"
     # apply_species_filter(new_lib_path, new_lib_json_path)
     # get_rn_db(new_lib_json_path ,new_lib_path)
 
