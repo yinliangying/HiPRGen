@@ -1,3 +1,4 @@
+import time
 import math
 from HiPRGen.mol_entry import MoleculeEntry
 from functools import partial
@@ -6,6 +7,24 @@ import networkx as nx
 from networkx.algorithms.graph_hashing import weisfeiler_lehman_graph_hash
 from HiPRGen.constants import Terminal, ROOM_TEMP, KB, PLANCK, m_formulas
 from monty.json import MSONable
+import traceback
+from functools import wraps
+
+def timer(func):
+    func.calls = 0
+    func.spend=0 
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        func.calls += 1
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        func.spend+=end_time - start_time
+        if func.calls%1000==0:
+            print(f"{func.__qualname__}  {func.calls}  {func.spend:.6f}s")
+        return result
+    
+    return wrapper
 
 """
 The reaction decision tree:
@@ -454,7 +473,7 @@ class fragment_matching_found(MSONable):
 
     def __str__(self):
         return "fragment matching found"
-
+    @timer
     def __call__(self, reaction, mols, params):
 
         reactant_fragment_indices_list = []
