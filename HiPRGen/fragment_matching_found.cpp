@@ -135,7 +135,7 @@ Return function(int number_of_reactants, int number_of_products,
                 }
 
                 for (auto& bond : fragment_complex.bonds_broken) {
-                    reactant_bonds_broken.push_back(std::make_pair(std::make_pair(reactant_index, bond.first), std::make_pair(reactant_index, bond.second)));
+                    reactant_bonds_broken.push_back(std::make_pair(std::make_pair(reactant_index, bond[0]), std::make_pair(reactant_index, bond[1])));
                 }
 
                 for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
@@ -168,7 +168,7 @@ Return function(int number_of_reactants, int number_of_products,
                 }
 
                 for (auto& bond : fragment_complex.bonds_broken) {
-                    product_bonds_broken.push_back(std::make_pair(std::make_pair(product_index, bond.first), std::make_pair(product_index, bond.second)));
+                    product_bonds_broken.push_back(std::make_pair(std::make_pair(product_index, bond[0]), std::make_pair(product_index, bond[1])));
                 }
 
                 for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
