@@ -1,11 +1,11 @@
-from HiPRGen.reaction_filter_united import dispatcher,worker,DISPATCHER_RANK
+
 import ctypes
 import pickle
 from ctypes import Structure, c_int, POINTER,c_char,c_char_p,c_bool
 from HiPRGen.mol_entry import MoleculeEntry
 
 def create_molecule_entry(mol_entries,reactant_id):
-    molecule_entry_ctype = MoleculeEntry()
+    molecule_entry_ctype = MoleculeEntry_c_type()
     if reactant_id == -1:
         return molecule_entry_ctype
 
@@ -38,24 +38,24 @@ def create_molecule_entry(mol_entries,reactant_id):
 
 
 
-MAX_LIST_SIZE = 100
+MAX_LIST_SIZE = 29*2#100
 #MAX_HASH_STR_SIZE = 100
 
-class FragmentComplex(Structure):
+class FragmentComplex_c_type(Structure):
     _fields_ = [
                 ("number_of_bonds_broken", c_int),
                 ("bonds_broken", c_int*2*MAX_LIST_SIZE),
                 ("number_of_fragments", c_int),
                 ("fragment_hashes", c_char_p*MAX_LIST_SIZE)]
 
-class MoleculeEntry(Structure):
+class MoleculeEntry_c_type(Structure):
     _fields_ = [
         ("number_of_fragment_data",c_int),
-        ("fragment_data", FragmentComplex*MAX_LIST_SIZE),
+        ("fragment_data", FragmentComplex_c_type*MAX_LIST_SIZE),
     ]
 
 
-class Return(Structure):
+class Return_c_type(Structure):
     _fields_ = [
         ("r", ctypes.c_bool),
         ("reactant_fragment_count", c_int),
@@ -105,12 +105,12 @@ product1_mol_entry_ctype=create_molecule_entry(mol_entries,product1_id)
 
 #定义函数参数类型和返回值类型
 lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
-                    ctypes.POINTER(MoleculeEntry),
-                    ctypes.POINTER(MoleculeEntry),
-                    ctypes.POINTER(MoleculeEntry),
-                    ctypes.POINTER(MoleculeEntry)]
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type)]
 
-lib.fragment_matching_found.restype = Return
+lib.fragment_matching_found.restype = Return_c_type
 
 r=lib.fragment_matching_found(number_of_reactants,number_of_products,
                             ctypes.pointer(reactant0_mol_entry_ctype),
