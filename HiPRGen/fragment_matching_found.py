@@ -3,7 +3,7 @@ import ctypes
 import pickle
 from ctypes import Structure, c_int, POINTER,c_char,c_char_p,c_bool
 from HiPRGen.mol_entry import MoleculeEntry
-
+from time import time
 def create_molecule_entry(mol_entries,reactant_id):
     molecule_entry_ctype = MoleculeEntry_c_type()
     if reactant_id == -1:
@@ -124,14 +124,14 @@ def main():
                         ctypes.POINTER(MoleculeEntry_c_type)]
 
     lib.fragment_matching_found.restype = Return_c_type
-
+    t_time=time()
     r=lib.fragment_matching_found(number_of_reactants,number_of_products,
                                 ctypes.pointer(reactant0_mol_entry_ctype),
                                 ctypes.pointer(reactant1_mol_entry_ctype),
                                 ctypes.pointer(product0_mol_entry_ctype),
                                 ctypes.pointer(product1_mol_entry_ctype)
                                 )
-    print(r)
+    print(r.r,time()-t_time)
 
 
 

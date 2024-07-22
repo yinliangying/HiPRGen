@@ -67,7 +67,7 @@ bool areMapsEqual(const std::unordered_map<std::string, int>& map1, const std::u
     return true;
 }
 
-Return function(int number_of_reactants, int number_of_products,
+extern "C" Return fragment_matching_found(int number_of_reactants, int number_of_products,
                 MoleculeEntry *reactant0_mol, MoleculeEntry *reactant1_mol,
                 MoleculeEntry *product0_mol, MoleculeEntry *product1_mol) {
     std::vector<std::vector<int>> reactant_fragment_indices_list;
