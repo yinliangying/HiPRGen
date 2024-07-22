@@ -18,9 +18,13 @@
 //}
 
 
+#include <cstring> // For strcpy()
+#include <string>
+#include <iostream>
+#include <unordered_map>
+#include <vector>
 
-
-const int MAX_LIST_SIZE = 100;
+const int MAX_LIST_SIZE = 29;
 
 typedef struct {
     int number_of_bonds_broken;
@@ -121,8 +125,9 @@ Return function(int number_of_reactants, int number_of_products,
                     fragment_complex = reactant0_mol->fragment_data[frag_complex_index];
                 }
                 else if (reactant_index == 1) {
-                    if frag_complex_index == -1:
+                    if (frag_complex_index == -1){
                         continue
+                    }
                     fragment_complex = reactant1_mol->fragment_data[frag_complex_index];
                 }
                 else {
@@ -153,8 +158,9 @@ Return function(int number_of_reactants, int number_of_products,
                     fragment_complex = product0_mol->fragment_data[frag_complex_index];
                 }
                 else if (product_index == 1) {
-                    if frag_complex_index == -1:
+                    if (frag_complex_index == -1){
                         continue
+                    }
                     fragment_complex = product1_mol->fragment_data[frag_complex_index];
                 }
                 else {
@@ -177,9 +183,9 @@ Return function(int number_of_reactants, int number_of_products,
                 }
             }
 
-            bool isEqual = areMapsEqual(map1, map2);
+            bool isEqual = areMapsEqual(reactant_hashes, product_hashes);
 
-            if (isEqual ) {
+            if (isEqual) {
                 result.r = true;
                 result.reactant_fragment_count = reactant_fragment_count;
                 result.product_fragment_count = product_fragment_count;
@@ -207,7 +213,8 @@ Return function(int number_of_reactants, int number_of_products,
 
                 index = 0;
                 for (auto& hash : reactant_hashes) {
-                    result.hashes_key[index] = const_cast<char*>(hash.first.c_str());
+                    result.hashes_key[index] =new char[hash.first.size() + 1];
+                    strcpy(result.hashes_key[index], hash.first.c_str()); //delete[] result.hashes_key[index]; // 不要忘记释放内存
                     result.hashes_value[index] = hash.second;
                     index++;
                 }
