@@ -1,24 +1,18 @@
 import os
+import sys
+from pathlib import Path
+
+import pandas as pd
 from dp.launching.cli import SubParser, default_minimal_exception_handler, run_sp_and_exit, to_runner
 from dp.launching.typing import List, BaseModel, Field, OutputDirectory, InputFilePath, Int, Union, String, Literal, \
     Field, Enum
 from dp.launching.typing.io import InputMoleculeContent
 
-#添加pathonpath
-os.environ["PATH"] = os.environ["PATH"] + ":/root/HiPRGen/"
-from pdf2png import interfacial_reaction_pdf2png
-import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] [%(levelname)s] [%(name)s]  %(funcName)s  %(lineno)d- %(message)s')
-
-logger = logging.getLogger(__name__)
 def SCORING_func(output_dir,
                  method_type,
                  ):
-    HiPRGen_dir="/root/HiPRGen"
-    network_json_path = "%s/data/libe.json"%(HiPRGen_dir)
+    network_json_path = "/root/HiPRGen/data/libe.json"
     os.system("mkdir -p %s" % (output_dir))
     number_of_threads = os.popen("nproc").read().strip()  # os.system("nproc")
     if method_type.contact.type == "LIBE_ID_input":
@@ -26,58 +20,47 @@ def SCORING_func(output_dir,
         init_molecule_libe_id_list = method_type.contact.init_molecule_libe_id_list
 
         if observed_molecule_libe_id_list == "":
-            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
+            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type libe_id  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list}  \
-            "
-            logger.info(shell_str)
-            os.system(shell_str)
+            ")
         else:
-            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
+            os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
             --network_json_path  {network_json_path}  --molecule_type libe_id  \
             --number_of_threads {number_of_threads} --work_dir  {output_dir} \
              --init_molecule_libe_id_list {init_molecule_libe_id_list} --observed_molecule_libe_id_list {observed_molecule_libe_id_list} \
-            "
-            logger.info(shell_str)
-            os.system(shell_str)
-        logger.info("interfacial_reaction_pdf2png:%s"%output_dir)
-        interfacial_reaction_pdf2png(output_dir)
-
-
+            ")
 
     elif method_type.contact.type == "SMILES_input":
         observed_molecule_smiles_list = method_type.contact.observed_molecule_smiles_list
         init_molecule_smiles_list = method_type.contact.init_molecule_smiles_list
-        with open("init_molecule_smiles_list.txt","w") as init_molecule_smiles_list_fp:
-            init_molecule_smiles_list_fp.write(init_molecule_smiles_list)
-        with open("observed_molecule_smiles_list.txt","w") as observed_molecule_smiles_list_fp:
-            observed_molecule_smiles_list_fp.write(observed_molecule_smiles_list)
 
-        #old
-        if observed_molecule_smiles_list == "":
-            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
-            --network_json_path  {network_json_path}  --molecule_type SMILES  \
-            --number_of_threads {number_of_threads} --work_dir  {output_dir} \
-             --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
-            "
-            logger.info(shell_str)
-            os.system(shell_str)
-        else:
-            shell_str=f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
-            --network_json_path  {network_json_path}  --molecule_type SMILES  \
-            --number_of_threads {number_of_threads} --work_dir  {output_dir} \
-              --init_molecule_smiles_list_file  init_molecule_smiles_list.txt  \
-              --observed_molecule_smiles_list_file observed_molecule_smiles_list.txt  "
-            logger.info(shell_str)
-            os.system(shell_str)
-        logger.info("interfacial_reaction_pdf2png:%s" % output_dir)
+        import sys
 
-        interfacial_reaction_pdf2png(output_dir)
+        sys.path.append('/root/HiPRGen')
+
+        from bohrium_start import li_run
+
+        # os.system(' . /root/HiPRGen/nix_env.sh')
+        network_json_dir, network_json_filename = os.path.split(network_json_path)
+        network_folder_name = network_json_filename.split(".")[0]
+        network_folder = os.path.join(network_json_dir, network_folder_name)
+        work_dir = os.path.abspath(output_dir)
+        os.makedirs(work_dir, exist_ok=True)
+        error_log = os.path.join(work_dir, r'ERROR.log')
+        with open(error_log, 'w') as f:
+            f.write('\n')
+        print(work_dir)
+        print(number_of_threads)
+        li_run(network_json_path=network_json_path, network_folder=network_folder,
+               init_molecule_list=init_molecule_smiles_list, work_dir=work_dir,
+               observed_molecule_list=observed_molecule_smiles_list,
+               molecule_type='SMILES', number_of_threads=number_of_threads)
 
     elif method_type.contact.type == "find_LIBE_ID_by_formula_alphabetical":
         formula_alphabetical_list = method_type.contact.formula_alphabetical_list.replace(" ", "_")
-        os.system(f" . {HiPRGen_dir}/nix_env.sh && python {HiPRGen_dir}/bohrium_start.py  \
+        os.system(f" . /root/HiPRGen/nix_env.sh && python /root/HiPRGen/bohrium_start.py  \
                     --network_json_path  {network_json_path}  --molecule_type find_formula  \
                     --number_of_threads {number_of_threads} --work_dir  {output_dir} \
                     --find_libe_id_by_formula_alphabetical_list {formula_alphabetical_list} \
