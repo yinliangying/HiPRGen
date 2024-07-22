@@ -119,7 +119,7 @@ def dispatcher(
     rn_con = sqlite3.connect(dispatcher_payload.reaction_network_db_file)
     rn_cur = rn_con.cursor()
     rn_cur.execute(create_metadata_table)
-    rn_cur.execute(create_reactions_table)
+    #rn_cur.execute(create_reactions_table)
     rn_con.commit()
 
     log_message("initializing report generator")
@@ -146,7 +146,13 @@ def dispatcher(
 
     log_message("all workers running")
 
-    reaction_index = 0
+    #reaction_index = 0
+    res=rn_cur.execute("select count(*) from reactions")
+    for row in res:
+        reaction_index=row[0]
+    log_message("old reaction index:",reaction_index)
+
+
 
     log_message("handling requests")
 
@@ -253,15 +259,31 @@ def worker(
 ):
 
     comm = MPI.COMM_WORLD
+    rank= comm.Get_rank()
+
     con = sqlite3.connect(worker_payload.bucket_db_file)
     cur = con.cursor()
 
 
     comm.send(None, dest=DISPATCHER_RANK, tag=INITIALIZATION_FINISHED)
 
+    total_time=0
+    comm_time=0
+    sql_time=0
+    filter_time=0
+    opt_filter_time=0
+    comm_filter_time=0
+    batch_times=0
     while True:
+        if rank==1:
+            batch_times+=1
+            print(f"total_time:{total_time} comm_time:{comm_time}  sql_time:{sql_time}  filter_time:{filter_time}  opt_filter_time:{opt_filter_time}  comm_filter_time:{comm_filter_time}  batch_times:{batch_times}   "   )
+
+        s_time=time()
+        t_time=time()
         comm.send(None, dest=DISPATCHER_RANK, tag=SEND_ME_A_WORK_BATCH)
         work_batch = comm.recv(source=DISPATCHER_RANK, tag=HERE_IS_A_WORK_BATCH)
+        comm_time+=time()-t_time
 
         if work_batch is None:
             break
@@ -271,10 +293,12 @@ def worker(
 
 
         if group_id_0 == group_id_1:
-
+            
+            t_time=time()
             res = cur.execute(
                 get_complex_group_sql,
                 (composition_id, group_id_0))
+            sql_time=time()-t_time
 
             bucket = []
             for row in res:
@@ -283,19 +307,19 @@ def worker(
             iterator = permutations(bucket, r=2)
 
         else:
-
+            t_time=time()
             res_0 = cur.execute(
                 get_complex_group_sql,
                 (composition_id, group_id_0))
-
+            sql_time=time()-t_time
             bucket_0 = []
             for row in res_0:
                 bucket_0.append((row[0],row[1]))
-
+            t_time=time()
             res_1 = cur.execute(
                 get_complex_group_sql,
                 (composition_id, group_id_1))
-
+            sql_time=time()-t_time
             bucket_1 = []
             for row in res_1:
                 bucket_1.append((row[0],row[1]))
@@ -310,8 +334,36 @@ def worker(
                 'products' : products,
                 'number_of_reactants' : len([i for i in reactants if i != -1]),
                 'number_of_products' : len([i for i in products if i != -1])}
+            
+            t1_time=time()
+            reactants_source=None
+            if reactants[1]!=-1:
+                #print(f"mol_entries[reactants[1]].source:{mol_entries[reactants[1]].source}")
+                if mol_entries[reactants[0]].source=="old" and mol_entries[reactants[1]].source=="old":
+                    reactants_source="old"
+            else:
+                if mol_entries[reactants[0]].source=="old":
+                    reactants_source="old"
+            products_source=None
+            if products[1]!=-1:
+                #print(f"mol_entries[products[1]].source:{mol_entries[products[1]].source}")
+                if mol_entries[products[0]].source=="old" and mol_entries[products[1]].source=="old":
+                    
+                    products_source="old"
+                    #print(f"products_source:{products_source}")
+            else:
+                if mol_entries[products[0]].source=="old":
+                    products_source="old"
+            #print(reactants_source, products_source)
+            if reactants_source=="old" and products_source=="old":
+                #print("opt_filtered")
+                opt_filter_time+=time()-t1_time
+                continue
+            else:
+                pass#print("opt_unfiltered")
 
 
+            t2_time=time()
             decision_pathway = []
             if run_decision_tree(reaction,
                                  mol_entries,
@@ -319,18 +371,20 @@ def worker(
                                  worker_payload.reaction_decision_tree,
                                  decision_pathway
                                  ):
-
+                #print("filter1 pass")
+                t_time=time()
                 comm.send(
                     reaction,
                     dest=DISPATCHER_RANK,
                     tag=NEW_REACTION_DB)
-
+                comm_filter_time+=time()-t_time
 
             if run_decision_tree(reaction,
                                  mol_entries,
                                  worker_payload.params,
                                  worker_payload.logging_decision_tree):
-
+                #print("filter2 pass")
+                t_time=time()
                 comm.send(
                     (reaction,
                      '\n'.join([str(f) for f in decision_pathway])
@@ -338,3 +392,9 @@ def worker(
 
                     dest=DISPATCHER_RANK,
                     tag=NEW_REACTION_LOGGING)
+                comm_filter_time+=time()-t_time
+            filter_time+=time()-t1_time
+
+            if not ( reactants_source=="old" and products_source=="old"):
+                opt_filter_time+=time()-t1_time
+        total_time+=time()-s_time

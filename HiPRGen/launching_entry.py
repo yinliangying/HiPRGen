@@ -84,11 +84,11 @@ def chk_ids_with_rn_db(main_mol_id: int, sub_mol_id: int, rn_db_path: str):
     cursor.execute(query, (main_mol_id, sub_mol_id, sub_mol_id, main_mol_id))
     has_reaction = cursor.fetchone()[0]
     conn.close()
-    return bool(has_reaction)
+    return has_reaction > 0
 
 
-def run_with_id(main_mol_id: int, output_dir: str, simulation_times: int, num_cores: int,
-                default_file_paths: dict = libe_default_paths, sub_mol_id: int=-1):
+def run_with_id(main_mol_id: int, sub_mol_id: int, output_dir: str, simulation_times: int, num_cores: int,
+                default_file_paths: dict = libe_default_paths):
     cwd_ = os.getcwd()
     output_dir = os.path.abspath(output_dir)
     os.makedirs(output_dir, exist_ok=True)
@@ -105,7 +105,6 @@ def run_with_id(main_mol_id: int, output_dir: str, simulation_times: int, num_co
 
     with open(mol_entry_file_path, "rb") as pickle_file:
         mol_entries = pickle.load(pickle_file)
-
     initial_state = {main_mol_id: 30, sub_mol_id: 30}
     initial_state_path = os.path.join(output_dir, 'initial_state.sqlite')
     insert_initial_state(initial_state, mol_entries, initial_state_path)
@@ -188,31 +187,3 @@ def run_with_smiles(output_dir: str, simulation_times: int, num_cores: int, main
         sub_id = common_sub_mol_info[sub_mol_name]
     run_with_id(main_mol_id=main_mol_id, sub_mol_id=sub_id, output_dir=output_dir,
                 simulation_times=simulation_times, num_cores=num_cores, default_file_paths=default_file_paths)
-
-
-if __name__ == "__main__":
-    run_with_id(
-        main_mol_id=446,
-        output_dir=r'./pathway',
-        simulation_times=1000,
-        num_cores=8,
-        default_file_paths={
-            'rn_db_path': r'/root/test_fmol_3/rn.sqlite',
-            'mol_picture_folder_path': r'/root/test_fmol_2/test/molecule_images_v3',
-            'mol_entry_file_path': r'/root/test_fmol_3/mol_entries.pickle',
-        }
-    )
-
-
-
-
-
-
-
-
-
-
-
-
-
-

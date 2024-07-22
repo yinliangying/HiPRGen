@@ -39,7 +39,7 @@ def bucket(
     composition_count = 0
 
     for m in mol_entries:
-        composition = '_'.join(sorted(m.species))
+        composition = '_'.join(sorted(m.species)) #m.species :['O', 'C', 'O', 'O', 'C', 'C', 'C', 'Li', 'H', 'H', 'H', 'H', 'H']
 
         if composition not in group_counts:
             group_counts[composition] = 0
