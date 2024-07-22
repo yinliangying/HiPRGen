@@ -126,7 +126,7 @@ Return function(int number_of_reactants, int number_of_products,
                 }
                 else if (reactant_index == 1) {
                     if (frag_complex_index == -1){
-                        continue
+                        continue;
                     }
                     fragment_complex = reactant1_mol->fragment_data[frag_complex_index];
                 }
@@ -159,7 +159,7 @@ Return function(int number_of_reactants, int number_of_products,
                 }
                 else if (product_index == 1) {
                     if (frag_complex_index == -1){
-                        continue
+                        continue;
                     }
                     fragment_complex = product1_mol->fragment_data[frag_complex_index];
                 }
