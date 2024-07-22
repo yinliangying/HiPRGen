@@ -79,6 +79,113 @@ class Return_c_type(Structure):
         ("num_hashes", c_int)]
 
 
+def ori_function( reaction, mols):
+
+        reactant_fragment_indices_list = []
+        product_fragment_indices_list = []
+
+        if reaction['number_of_reactants'] == 1:
+            reactant = mols[reaction['reactants'][0]]
+            for i in range(len(reactant.fragment_data)):
+                reactant_fragment_indices_list.append([i])
+
+
+        if reaction['number_of_reactants'] == 2:
+            reactant_0 = mols[reaction['reactants'][0]]
+            reactant_1 = mols[reaction['reactants'][1]]
+            for i in range(len(reactant_0.fragment_data)):
+                for j in range(len(reactant_1.fragment_data)):
+                    if (reactant_0.fragment_data[i].number_of_bonds_broken +
+                        reactant_1.fragment_data[j].number_of_bonds_broken <= 1):
+
+                        reactant_fragment_indices_list.append([i,j])
+
+
+        if reaction['number_of_products'] == 1:
+            product = mols[reaction['products'][0]]
+            for i in range(len(product.fragment_data)):
+                product_fragment_indices_list.append([i])
+
+
+        if reaction['number_of_products'] == 2:
+            product_0 = mols[reaction['products'][0]]
+            product_1 = mols[reaction['products'][1]]
+            for i in range(len(product_0.fragment_data)):
+                for j in range(len(product_1.fragment_data)):
+                    if (product_0.fragment_data[i].number_of_bonds_broken +
+                        product_1.fragment_data[j].number_of_bonds_broken <= 1):
+
+                        product_fragment_indices_list.append([i,j])
+
+
+        for reactant_fragment_indices in reactant_fragment_indices_list:
+            for product_fragment_indices in product_fragment_indices_list:
+                reactant_fragment_count = 0
+                product_fragment_count = 0
+                reactant_bonds_broken = []
+                product_bonds_broken = []
+
+                reactant_hashes = dict()
+                for reactant_index, frag_complex_index in enumerate(
+                        reactant_fragment_indices):
+
+                    fragment_complex = mols[
+                        reaction['reactants'][reactant_index]].fragment_data[
+                            frag_complex_index]
+
+                    for bond in fragment_complex.bonds_broken:
+                        reactant_bonds_broken.append(
+                            [(reactant_index, x) for x in bond])
+
+                    for i in range(fragment_complex.number_of_fragments):
+                        reactant_fragment_count += 1
+                        tag = fragment_complex.fragment_hashes[i]
+                        if tag in reactant_hashes:
+                            reactant_hashes[tag] += 1
+                        else:
+                            reactant_hashes[tag] = 1
+
+                product_hashes = dict()
+                for product_index, frag_complex_index in enumerate(
+                        product_fragment_indices):
+
+                    fragment_complex = mols[
+                        reaction['products'][product_index]].fragment_data[
+                            frag_complex_index]
+
+                    for bond in fragment_complex.bonds_broken:
+                        product_bonds_broken.append(
+                            [(product_index, x) for x in bond])
+
+
+                    for i in range(fragment_complex.number_of_fragments):
+                        product_fragment_count += 1
+                        tag = fragment_complex.fragment_hashes[i]
+                        if tag in product_hashes:
+                            product_hashes[tag] += 1
+                        else:
+                            product_hashes[tag] = 1
+
+
+                # don't consider fragmentations with both a ring opening and closing
+                if (reaction['number_of_reactants'] == 2 and
+                    reaction['number_of_products'] == 2 and
+                    reactant_fragment_count == 2 and
+                    product_fragment_count == 2):
+                    continue
+
+
+                if reactant_hashes == product_hashes:
+                    reaction['reactant_bonds_broken'] = reactant_bonds_broken
+                    reaction['product_bonds_broken'] = product_bonds_broken
+                    reaction['hashes'] = reactant_hashes
+                    reaction['reactant_fragment_count'] = reactant_fragment_count
+                    reaction['product_fragment_count'] = product_fragment_count
+
+                    return True
+
+        return False
+
 def main():
     lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
 
@@ -102,6 +209,16 @@ def main():
     product1_id=-1
     number_of_reactants=2
     number_of_products=1
+    reaction={
+        'number_of_reactants':number_of_reactants,
+        'number_of_products':number_of_products,
+        'reactants':[reactant0_id,reactant1_id],
+        'products':[product0_id,product1_id],
+
+    }
+    t_time=time()
+    res=ori_function(reaction,mol_entries)
+    print(f"res.r:{res.r},ori_time:{time()-t_time}")
 
     reactant0_mol_entry_ctype=create_molecule_entry(mol_entries,reactant0_id)
     reactant1_mol_entry_ctype=create_molecule_entry(mol_entries,reactant1_id)
@@ -125,13 +242,14 @@ def main():
 
     lib.fragment_matching_found.restype = Return_c_type
     t_time=time()
-    r=lib.fragment_matching_found(number_of_reactants,number_of_products,
+    res=lib.fragment_matching_found(number_of_reactants,number_of_products,
                                 ctypes.pointer(reactant0_mol_entry_ctype),
                                 ctypes.pointer(reactant1_mol_entry_ctype),
                                 ctypes.pointer(product0_mol_entry_ctype),
                                 ctypes.pointer(product1_mol_entry_ctype)
                                 )
-    print(r.r,time()-t_time)
+
+    print(f"res.r:{res.r},new_time:{time() - t_time}")
 
 
 

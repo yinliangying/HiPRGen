@@ -17,6 +17,7 @@
 //
 //}
 
+// g++ -shared -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so
 
 #include <cstring> // For strcpy()
 #include <string>
