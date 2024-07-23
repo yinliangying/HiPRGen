@@ -128,7 +128,7 @@ def ori_function( reaction, mols):
             for i in range(len(reactant.fragment_data)):
                 #print("number_of_reactants:" + str(reaction['number_of_reactants']) + " " + str(i))
                 reactant_fragment_indices_list.append([i])
-            print(f"number_of_reactants:{reaction['number_of_reactants']},len(reactant_fragment_indices_list):{len(reactant_fragment_indices_list)}")
+            # print(f"number_of_reactants:{reaction['number_of_reactants']},len(reactant_fragment_indices_list):{len(reactant_fragment_indices_list)}")
 
 
         if reaction['number_of_reactants'] == 2:
@@ -142,7 +142,7 @@ def ori_function( reaction, mols):
                         reactant_fragment_indices_list.append([i,j])
                         #print("number_of_reactants:" + str(reaction['number_of_reactants']) + " " + str(i) + " " + str(j))
 
-            print(f"number_of_reactants:{reaction['number_of_reactants']},len(reactant_fragment_indices_list):{len(reactant_fragment_indices_list)}")
+            # print(f"number_of_reactants:{reaction['number_of_reactants']},len(reactant_fragment_indices_list):{len(reactant_fragment_indices_list)}")
 
         if reaction['number_of_products'] == 1:
             product = mols[reaction['products'][0]]
@@ -150,7 +150,7 @@ def ori_function( reaction, mols):
                 #print("number_of_products:" + str(reaction['number_of_products']) + " " + str(i))
                 product_fragment_indices_list.append([i])
 
-            print(f"number_of_products:{reaction['number_of_products']},len(product_fragment_indices_list):{len(product_fragment_indices_list)}")
+            # print(f"number_of_products:{reaction['number_of_products']},len(product_fragment_indices_list):{len(product_fragment_indices_list)}")
 
         if reaction['number_of_products'] == 2:
             product_0 = mols[reaction['products'][0]]
@@ -163,7 +163,7 @@ def ori_function( reaction, mols):
                         product_fragment_indices_list.append([i,j])
                         #print("number_of_products:" + str(reaction['number_of_products']) + " " + str(i) + " " + str(j))
 
-            print(f"number_of_products:{reaction['number_of_products']},len(product_fragment_indices_list):{len(product_fragment_indices_list)}")
+            # print(f"number_of_products:{reaction['number_of_products']},len(product_fragment_indices_list):{len(product_fragment_indices_list)}")
 
         for reactant_fragment_indices in reactant_fragment_indices_list:
             for product_fragment_indices in product_fragment_indices_list:

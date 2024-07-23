@@ -81,7 +81,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 //            std::cout << "number_of_reactants:" << number_of_reactants<<" "<<i << std::endl;
             reactant_fragment_indices_list.push_back({i, -1});
         }
-        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
+//        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
     }
 
     if (number_of_reactants == 2) {
@@ -94,7 +94,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 }
             }
         }
-        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
+//        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
     }
 
     if (number_of_products == 1) {
@@ -102,7 +102,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 //            std::cout << "number_of_products:" << number_of_products<<" "<<i << std::endl;
             product_fragment_indices_list.push_back({i, -1});
         }
-        std::cout << "number_of_products:" << number_of_products<<" "<<product_fragment_indices_list.size() << std::endl;
+//        std::cout << "number_of_products:" << number_of_products<<" "<<product_fragment_indices_list.size() << std::endl;
 
     }
 
@@ -116,7 +116,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 }
             }
         }
-        std::cout << "number_of_products:" << number_of_products<<" "<<product_fragment_indices_list.size() << std::endl;
+//        std::cout << "number_of_products:" << number_of_products<<" "<<product_fragment_indices_list.size() << std::endl;
     }
 
     for (auto& reactant_fragment_indices : reactant_fragment_indices_list) {
