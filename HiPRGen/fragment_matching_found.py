@@ -306,7 +306,7 @@ def main():
             if cpp_res!=py_res:
                 print(f"{py_res} {cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} {cpp_all_spend} [reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]} [product0_id,product1_id]:{[product0_id, product1_id]}")
             #print("*" * 100)
-            exit()
+            #exit()
 
 if __name__ == '__main__':
     main()
