@@ -52,6 +52,17 @@ typedef struct {
     int num_hashes;
 } Return;
 
+struct CharPtrHash {
+    std::size_t operator()(const char* str) const {
+        return std::hash<std::string>()(str);
+    }
+};
+
+struct CharPtrEqual {
+    bool operator()(const char* lhs, const char* rhs) const {
+        return std::strcmp(lhs, rhs) == 0;
+    }
+};
 
 bool areMapsEqual(const std::unordered_map<char*, int>& map1, const std::unordered_map<char*, int>& map2) {
     if (map1.size() != map2.size()) {
@@ -149,8 +160,8 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             int reactant_bonds_broken_len=0;
             int  product_bonds_broken[MAX_LIST_SIZE][2][2];
             int product_bonds_broken_len=0;
-            std::unordered_map<char*, int> reactant_hashes;
-            std::unordered_map<char*, int> product_hashes;
+            std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual>  reactant_hashes;
+            std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual>  product_hashes;
 
             int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx][0],reactant_fragment_indices_list[tmp_reactant_fragment_idx][1]};
             for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
@@ -259,7 +270,20 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             }
 
             bool isEqual = areMapsEqual(reactant_hashes, product_hashes);
-            if (tmp_reactant_fragment_idx==0 && tmp_product_fragment_idx) {
+            if (tmp_reactant_fragment_idx==0 && tmp_product_fragment_idx==0) {
+
+
+
+                for (const auto& pair : reactant_hashes) {
+                    auto it = product_hashes.find(pair.first);
+                    if (it == product_hashes.end() || it->second != pair.second) {
+                        std::cout<<pair.first <<std::endl;
+    //                    return false;
+                    }
+                }
+
+
+
                 int tmp_reactant_hashes_index = 0;
                 int tmp_product_hashes_index = 0;
                 for (auto& hash : reactant_hashes) {
