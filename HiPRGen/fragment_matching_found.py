@@ -165,8 +165,8 @@ def ori_function( reaction, mols):
 
             # print(f"number_of_products:{reaction['number_of_products']},len(product_fragment_indices_list):{len(product_fragment_indices_list)}")
 
-        for reactant_fragment_indices in reactant_fragment_indices_list:
-            for product_fragment_indices in product_fragment_indices_list:
+        for tmp_reactant_fragment_idx,reactant_fragment_indices in enumerate(reactant_fragment_indices_list):
+            for  tmp_product_fragment_idx,product_fragment_indices in enumerate(product_fragment_indices_list):
                 reactant_fragment_count = 0
                 product_fragment_count = 0
                 reactant_bonds_broken = []
@@ -231,6 +231,7 @@ def ori_function( reaction, mols):
 
 
                 if reactant_hashes == product_hashes:
+                    print(tmp_reactant_fragment_idx, tmp_product_fragment_idx)
                     reaction['reactant_bonds_broken'] = reactant_bonds_broken
                     reaction['product_bonds_broken'] = product_bonds_broken
                     reaction['hashes'] = reactant_hashes
@@ -270,7 +271,7 @@ def main():
         for j in range(len(mol_entries)):
             reactant0_id=i
             reactant1_id=-1
-            product0_id=j
+            product0_id=149
             product1_id=-1
 
             if reactant1_id==-1:
@@ -303,7 +304,7 @@ def main():
             if cpp_res!=py_res:
                 print(f"{py_res} {cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} {cpp_all_spend} [reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]} [product0_id,product1_id]:{[product0_id, product1_id]}")
             #print("*" * 100)
-
+            exit()
 
 if __name__ == '__main__':
     main()
