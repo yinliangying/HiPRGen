@@ -64,7 +64,7 @@ struct CharPtrEqual {
     }
 };
 
-bool areMapsEqual(const std::unordered_map<char*, int>& map1, const std::unordered_map<char*, int>& map2) {
+bool areMapsEqual(const std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual> & map1, const std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual> & map2) {
     if (map1.size() != map2.size()) {
         return false;
     }
