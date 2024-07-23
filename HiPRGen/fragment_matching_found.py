@@ -171,7 +171,7 @@ def ori_function( reaction, mols):
                     for i in range(fragment_complex.number_of_fragments):
                         product_fragment_count += 1
                         tag = fragment_complex.fragment_hashes[i]
-                        print("product_hashes:" + str(reactant_fragment_indices) + " " + str(product_fragment_indices) + " " + str(frag_complex_index) + " " + tag)
+                        #print("product_hashes:" + str(reactant_fragment_indices) + " " + str(product_fragment_indices) + " " + str(frag_complex_index) + " " + tag)
                         if tag in product_hashes:
                             product_hashes[tag] += 1
                         else:
