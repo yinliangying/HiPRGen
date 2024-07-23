@@ -152,7 +152,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             std::unordered_map<char*, int> reactant_hashes;
             std::unordered_map<char*, int> product_hashes;
 
-            reactant_fragment_indices=reactant_fragment_indices_list[tmp_reactant_fragment_idx];
+            int reactant_fragment_indices[2]=reactant_fragment_indices_list[tmp_reactant_fragment_idx];
             for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
                 int frag_complex_index = reactant_fragment_indices[reactant_index];
 
@@ -202,7 +202,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 }
             }
 
-            product_fragment_indices=reactant_fragment_indices_list[tmp_product_fragment_idx];
+            int product_fragment_indices[2]=reactant_fragment_indices_list[tmp_product_fragment_idx];
             for (int product_index = 0; product_index < 2; product_index++) {
 
                 int frag_complex_index = product_fragment_indices[product_index];
