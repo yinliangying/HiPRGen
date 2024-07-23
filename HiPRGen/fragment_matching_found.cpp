@@ -152,7 +152,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             std::unordered_map<char*, int> reactant_hashes;
             std::unordered_map<char*, int> product_hashes;
 
-            int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx]};
+            int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx][0],reactant_fragment_indices_list[tmp_reactant_fragment_idx][1]};
             for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
                 int frag_complex_index = reactant_fragment_indices[reactant_index];
 
@@ -202,7 +202,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 }
             }
 
-            int product_fragment_indices[2]={reactant_fragment_indices_list[tmp_product_fragment_idx]};
+            int product_fragment_indices[2]={product_fragment_indices_list[tmp_product_fragment_idx][0],product_fragment_indices_list[tmp_product_fragment_idx][1]};
             for (int product_index = 0; product_index < 2; product_index++) {
 
                 int frag_complex_index = product_fragment_indices[product_index];
@@ -222,9 +222,9 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 }
 
                 for (auto& bond : fragment_complex.bonds_broken) {
-                    product_bonds_broken[product_bonds_broken_len][0][0]=reactant_index;
+                    product_bonds_broken[product_bonds_broken_len][0][0]=product_index;
                     product_bonds_broken[product_bonds_broken_len][0][1]=bond[0];
-                    product_bonds_broken[product_bonds_broken_len][1][0]=reactant_index;
+                    product_bonds_broken[product_bonds_broken_len][1][0]=product_index;
                     product_bonds_broken[product_bonds_broken_len][1][1]=bond[1];
                     product_bonds_broken_len++;
                 }
@@ -302,7 +302,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     result.product_bonds_broken[i][1][1] = product_bonds_broken[i][1][1];
                 }
 
-                index = 0;
+                int index = 0;
                 for (auto& hash : reactant_hashes) {
                     result.hashes_key[index] =hash.first;
                     result.hashes_value[index] = hash.second;
