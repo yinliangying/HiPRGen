@@ -77,9 +77,10 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 
     if (number_of_reactants == 1) {
         for (int i = 0; i < reactant0_mol->number_of_fragment_data; i++) {
-            std::cout << "number_of_reactants:" << number_of_reactants<<" "<<i << std::endl;
+//            std::cout << "number_of_reactants:" << number_of_reactants<<" "<<i << std::endl;
             reactant_fragment_indices_list.push_back({i, -1});
         }
+        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
     }
 
     if (number_of_reactants == 2) {
@@ -88,17 +89,20 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 if ((reactant0_mol->fragment_data[i].number_of_bonds_broken +
                         reactant1_mol->fragment_data[j].number_of_bonds_broken) <= 1) {
                     reactant_fragment_indices_list.push_back({i, j});
-                    std::cout << "number_of_reactants:" << number_of_reactants<<" "<<i<<j << std::endl;
+//                    std::cout << "number_of_reactants:" << number_of_reactants<<" "<<i<<j << std::endl;
                 }
             }
         }
+        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
     }
 
     if (number_of_products == 1) {
         for (int i = 0; i < product0_mol->number_of_fragment_data; i++) {
-            std::cout << "number_of_products:" << number_of_products<<" "<<i << std::endl;
+//            std::cout << "number_of_products:" << number_of_products<<" "<<i << std::endl;
             product_fragment_indices_list.push_back({i, -1});
         }
+        std::cout << "number_of_products:" << number_of_products<<" "<<product_fragment_indices_list.size() << std::endl;
+
     }
 
     if (number_of_products == 2) {
@@ -107,10 +111,11 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 if ((product0_mol->fragment_data[i].number_of_bonds_broken +
                         product1_mol->fragment_data[j].number_of_bonds_broken) <= 1) {
                     product_fragment_indices_list.push_back({i, j});
-                    std::cout << "number_of_products:" << number_of_products<<" "<<i<<j << std::endl;
+//                    std::cout << "number_of_products:" << number_of_products<<" "<<i<<j << std::endl;
                 }
             }
         }
+        std::cout << "number_of_products:" << number_of_products<<" "<<product_fragment_indices_list.size() << std::endl;
     }
 
     for (auto& reactant_fragment_indices : reactant_fragment_indices_list) {
@@ -147,16 +152,16 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     reactant_fragment_count++;
                     std::string tag = fragment_complex.fragment_hashes[i];
 
-                    std::cout << "reactant_hashes: ";
-                    std::cout << "[" ;
-                    for (const auto& index : reactant_fragment_indices) {
-                        std::cout << index << " ";
-                    }
-                    std::cout << "][";
-                    for (const auto& index : product_fragment_indices) {
-                        std::cout << index << " ";
-                    }
-                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
+//                    std::cout << "reactant_hashes: ";
+//                    std::cout << "[" ;
+//                    for (const auto& index : reactant_fragment_indices) {
+//                        std::cout << index << " ";
+//                    }
+//                    std::cout << "][";
+//                    for (const auto& index : product_fragment_indices) {
+//                        std::cout << index << " ";
+//                    }
+//                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
 
                     if (reactant_hashes.count(tag) > 0) {
                         reactant_hashes[tag]++;
@@ -192,20 +197,16 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     product_fragment_count++;
                     std::string tag = fragment_complex.fragment_hashes[i];
 
-                    std::cout << "product_hashes: ";
-
-                    std::cout << "[" ;
-                    for (const auto& index : reactant_fragment_indices) {
-                        std::cout << index << " ";
-                    }
-                    std::cout << "][";
-                    for (const auto& index : product_fragment_indices) {
-                        std::cout << index << " ";
-                    }
-                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
-
-
-
+//                    std::cout << "product_hashes: ";
+//                    std::cout << "[" ;
+//                    for (const auto& index : reactant_fragment_indices) {
+//                        std::cout << index << " ";
+//                    }
+//                    std::cout << "][";
+//                    for (const auto& index : product_fragment_indices) {
+//                        std::cout << index << " ";
+//                    }
+//                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
                     if (product_hashes.count(tag) > 0) {
                         product_hashes[tag]++;
                     }
@@ -215,7 +216,27 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 }
             }
 
+
+            if (number_of_reactants == 2 && number_of_products == 2 &&
+                reactant_fragment_count == 2 && product_fragment_count == 2) {
+                continue;
+            }
+
             bool isEqual = areMapsEqual(reactant_hashes, product_hashes);
+//            int tmp_reactant_hashes_index = 0;
+//            int tmp_product_hashes_index = 0;
+//            for (auto& hash : reactant_hashes) {
+//                    std:cout<<tmp_reactant_hashes_index<< hash.first << hash.second << std::endl;
+//                    tmp_reactant_hashes_index++;
+//                }
+//            std:cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
+//            for (auto& hash : product_hashes) {
+//                    std:cout<<product_hashes<< hash.first << hash.second << std::endl;
+//                    tmp_product_hashes_index++;
+//                }
+//            std:cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
+//
+//            std:cout<<"isEqual"<<isEqual << std::endl;
 
             if (isEqual) {
                 result.r = true;
