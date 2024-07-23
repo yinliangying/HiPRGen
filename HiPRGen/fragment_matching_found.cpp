@@ -148,13 +148,15 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     std::string tag = fragment_complex.fragment_hashes[i];
 
                     std::cout << "reactant_hashes: ";
+                    std::cout << "[" ;
                     for (const auto& index : reactant_fragment_indices) {
                         std::cout << index << " ";
                     }
+                    std::cout << "][";
                     for (const auto& index : product_fragment_indices) {
                         std::cout << index << " ";
                     }
-                    std::cout  << frag_complex_index << " "  << tag << std::endl;
+                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
 
                     if (reactant_hashes.count(tag) > 0) {
                         reactant_hashes[tag]++;
@@ -191,13 +193,16 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     std::string tag = fragment_complex.fragment_hashes[i];
 
                     std::cout << "product_hashes: ";
+
+                    std::cout << "[" ;
                     for (const auto& index : reactant_fragment_indices) {
                         std::cout << index << " ";
                     }
+                    std::cout << "][";
                     for (const auto& index : product_fragment_indices) {
                         std::cout << index << " ";
                     }
-                    std::cout  << frag_complex_index << " "  << tag << std::endl;
+                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
 
 
 
