@@ -4,6 +4,7 @@ import pickle
 from ctypes import Structure, c_int, POINTER,c_char,c_char_p,c_bool
 from HiPRGen.mol_entry import MoleculeEntry
 from time import time
+import copy
 def create_molecule_entry(mol_entries,reactant_id):
     molecule_entry_ctype = MoleculeEntry_c_type()
     if reactant_id == -1:
@@ -78,6 +79,44 @@ class Return_c_type(Structure):
         ("hashes_value", c_int*MAX_LIST_SIZE),
         ("num_hashes", c_int)]
 
+def cpp_function( reaction, mol_entries,lib):
+
+    number_of_reactants=reaction['number_of_reactants']
+    number_of_products=reaction['number_of_products']
+    reactant0_id=reaction['reactants'][0]
+    reactant1_id=reaction['reactants'][1]
+    product0_id=reaction['products'][0]
+    product1_id=reaction['products'][1]
+
+    reactant0_mol_entry_ctype=create_molecule_entry(mol_entries,reactant0_id)
+    reactant1_mol_entry_ctype=create_molecule_entry(mol_entries,reactant1_id)
+    product0_mol_entry_ctype=create_molecule_entry(mol_entries,product0_id)
+    product1_mol_entry_ctype=create_molecule_entry(mol_entries,product1_id)
+
+    if reactant0_mol_entry_ctype is None:
+        print(f"skip:mol_id:{reactant0_id}")
+        return
+    if reactant1_mol_entry_ctype is None:
+        print(f"skip:mol_id:{reactant1_id}")
+        return
+    if product0_mol_entry_ctype is None:
+        print(f"skip:mol_id:{product0_id}")
+        return
+    if product1_mol_entry_ctype is None:
+        print(f"skip:mol_id:{product1_id}")
+        return
+
+
+    t_time=time()
+    res=lib.fragment_matching_found(number_of_reactants,number_of_products,
+                                ctypes.pointer(reactant0_mol_entry_ctype),
+                                ctypes.pointer(reactant1_mol_entry_ctype),
+                                ctypes.pointer(product0_mol_entry_ctype),
+                                ctypes.pointer(product1_mol_entry_ctype)
+                                )
+    spend=time() - t_time
+    return res.r,spend
+    #print(f"res.r:{res.r},cpp_time:{time() - t_time}")
 
 def ori_function( reaction, mols):
 
@@ -204,6 +243,14 @@ def ori_function( reaction, mols):
 
 def main():
     lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    #定义函数参数类型和返回值类型
+    lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
+                        ctypes.POINTER(MoleculeEntry_c_type),
+                        ctypes.POINTER(MoleculeEntry_c_type),
+                        ctypes.POINTER(MoleculeEntry_c_type),
+                        ctypes.POINTER(MoleculeEntry_c_type)]
+    lib.fragment_matching_found.restype = Return_c_type
+
 
     with open("old_lib/mol_entries.pickle", 'rb') as f:
         mol_entries = pickle.load(f)
@@ -219,54 +266,41 @@ def main():
     print("max_list_size:",max_list_size)
 
 
-    reactant0_id=1
-    reactant1_id=2
-    product0_id=3
-    product1_id=-1
-    number_of_reactants=2
-    number_of_products=1
-    reaction={
-        'number_of_reactants':number_of_reactants,
-        'number_of_products':number_of_products,
-        'reactants':[reactant0_id,reactant1_id],
-        'products':[product0_id,product1_id],
+    for i in range(len(mol_entries)):
+        for j in range(len(mol_entries)):
+            reactant0_id=i
+            reactant1_id=-1
+            product0_id=j
+            product1_id=-1
 
-    }
-    t_time=time()
-    res=ori_function(reaction,mol_entries)
-    print(f"res:{res},ori_time:{time()-t_time}")
+            if reactant1_id==-1:
+                number_of_reactants=1
+            else:
+                number_of_reactants=2
+            if product1_id==-1:
+                number_of_products=1
+            else:
+                number_of_products=2
+            reaction={
+                'number_of_reactants':number_of_reactants,
+                'number_of_products':number_of_products,
+                'reactants':[reactant0_id,reactant1_id],
+                'products':[product0_id,product1_id],
 
-    reactant0_mol_entry_ctype=create_molecule_entry(mol_entries,reactant0_id)
-    reactant1_mol_entry_ctype=create_molecule_entry(mol_entries,reactant1_id)
-    product0_mol_entry_ctype=create_molecule_entry(mol_entries,product0_id)
-    product1_mol_entry_ctype=create_molecule_entry(mol_entries,product1_id)
-    if reactant0_mol_entry_ctype is None or \
-            reactant1_mol_entry_ctype is None or \
-            product0_mol_entry_ctype is None or \
-            product1_mol_entry_ctype is None:
-        print("skip")
-        exit()
+            }
 
+            t_time=time()
+            py_res=ori_function(copy.deepcopy(reaction),mol_entries)
+            py_spend=time()-t_time
 
-
-    #定义函数参数类型和返回值类型
-    lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
-                        ctypes.POINTER(MoleculeEntry_c_type),
-                        ctypes.POINTER(MoleculeEntry_c_type),
-                        ctypes.POINTER(MoleculeEntry_c_type),
-                        ctypes.POINTER(MoleculeEntry_c_type)]
-
-    lib.fragment_matching_found.restype = Return_c_type
-    t_time=time()
-    res=lib.fragment_matching_found(number_of_reactants,number_of_products,
-                                ctypes.pointer(reactant0_mol_entry_ctype),
-                                ctypes.pointer(reactant1_mol_entry_ctype),
-                                ctypes.pointer(product0_mol_entry_ctype),
-                                ctypes.pointer(product1_mol_entry_ctype)
-                                )
-
-    print(f"res.r:{res.r},new_time:{time() - t_time}")
-
+            cpp_res,cpp_spend=cpp_function(reaction,mol_entries,lib)
+            print(f"py_spend:{py_spend},cpp_spend:{cpp_spend}")
+            print(f"[reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]}")
+            print(f"[product0_id,product1_id]:{[product0_id, product1_id]}")
+            if cpp_res!=py_res:
+                print("cpp_res:",cpp_res)
+                print("py_res:",py_res)
+            print("*" * 100)
 
 
 if __name__ == '__main__':
