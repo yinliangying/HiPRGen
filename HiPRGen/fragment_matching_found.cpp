@@ -24,7 +24,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-
+#include <chrono>
 const int MAX_LIST_SIZE = 29;
 
 typedef struct {
@@ -71,6 +71,9 @@ bool areMapsEqual(const std::unordered_map<std::string, int>& map1, const std::u
 extern "C" Return fragment_matching_found(int number_of_reactants, int number_of_products,
                 MoleculeEntry *reactant0_mol, MoleculeEntry *reactant1_mol,
                 MoleculeEntry *product0_mol, MoleculeEntry *product1_mol) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+
     std::vector<std::vector<int>> reactant_fragment_indices_list;
     std::vector<std::vector<int>> product_fragment_indices_list;
     Return result;
@@ -279,6 +282,10 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             }
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    duration = duration / 1000;
+    std::cout << "Execution time: " << duration << " s" << std::endl;
 
     return result;
 }
