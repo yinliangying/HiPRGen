@@ -231,9 +231,9 @@ def ori_function( reaction, mols):
 
 
                 if reactant_hashes == product_hashes:
-                    print(tmp_reactant_fragment_idx, tmp_product_fragment_idx)
-                    for k in reactant_hashes:
-                        print(f"k:{k}")
+                    # print(tmp_reactant_fragment_idx, tmp_product_fragment_idx)
+                    # for k in reactant_hashes:
+                    #     print(f"k:{k}")
                     reaction['reactant_bonds_broken'] = reactant_bonds_broken
                     reaction['product_bonds_broken'] = product_bonds_broken
                     reaction['hashes'] = reactant_hashes
@@ -273,7 +273,7 @@ def main():
         for j in range(len(mol_entries)):
             reactant0_id=i
             reactant1_id=-1
-            product0_id=149
+            product0_id=j
             product1_id=-1
 
             if reactant1_id==-1:

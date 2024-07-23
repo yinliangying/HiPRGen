@@ -270,35 +270,35 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             }
 
             bool isEqual = areMapsEqual(reactant_hashes, product_hashes);
-            if (tmp_reactant_fragment_idx==0 && tmp_product_fragment_idx==0) {
-
-
-
-                for (const auto& pair : reactant_hashes) {
-                    auto it = product_hashes.find(pair.first);
-                    if (it == product_hashes.end() || it->second != pair.second) {
-                        std::cout<<pair.first <<std::endl;
-    //                    return false;
-                    }
-                }
-
-
-
-                int tmp_reactant_hashes_index = 0;
-                int tmp_product_hashes_index = 0;
-                for (auto& hash : reactant_hashes) {
-                        std::cout<<tmp_reactant_hashes_index<< hash.first << hash.second << std::endl;
-                        tmp_reactant_hashes_index++;
-                    }
-                std::cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
-                for (auto& hash : product_hashes) {
-                        std::cout<<tmp_product_hashes_index<< hash.first << hash.second << std::endl;
-                        tmp_product_hashes_index++;
-                    }
-                std::cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
-
-                std::cout<<"isEqual"<<isEqual << std::endl;
-            }
+//            if (tmp_reactant_fragment_idx==0 && tmp_product_fragment_idx==0) {
+//
+//
+//
+//                for (const auto& pair : reactant_hashes) {
+//                    auto it = product_hashes.find(pair.first);
+//                    if (it == product_hashes.end() || it->second != pair.second) {
+//                        std::cout<<pair.first <<std::endl;
+//    //                    return false;
+//                    }
+//                }
+//
+//
+//
+//                int tmp_reactant_hashes_index = 0;
+//                int tmp_product_hashes_index = 0;
+//                for (auto& hash : reactant_hashes) {
+//                        std::cout<<tmp_reactant_hashes_index<< hash.first << hash.second << std::endl;
+//                        tmp_reactant_hashes_index++;
+//                    }
+//                std::cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
+//                for (auto& hash : product_hashes) {
+//                        std::cout<<tmp_product_hashes_index<< hash.first << hash.second << std::endl;
+//                        tmp_product_hashes_index++;
+//                    }
+//                std::cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
+//
+//                std::cout<<"isEqual"<<isEqual << std::endl;
+//            }
 
             if (isEqual) {
                 result.r = true;
