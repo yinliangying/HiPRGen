@@ -64,7 +64,7 @@ struct CharPtrEqual {
     }
 };
 
-bool areMapsEqual(const std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual> & map1, const std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual> & map2) {
+bool areMapsEqual(const std::unordered_map< char*, int, CharPtrHash, CharPtrEqual> & map1, const std::unordered_map< char*, int, CharPtrHash, CharPtrEqual> & map2) {
     if (map1.size() != map2.size()) {
         return false;
     }
@@ -160,8 +160,8 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             int reactant_bonds_broken_len=0;
             int  product_bonds_broken[MAX_LIST_SIZE][2][2];
             int product_bonds_broken_len=0;
-            std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual>  reactant_hashes;
-            std::unordered_map<const char*, int, CharPtrHash, CharPtrEqual>  product_hashes;
+            std::unordered_map< char*, int, CharPtrHash, CharPtrEqual>  reactant_hashes;
+            std::unordered_map< char*, int, CharPtrHash, CharPtrEqual>  product_hashes;
 
             int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx][0],reactant_fragment_indices_list[tmp_reactant_fragment_idx][1]};
             for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
