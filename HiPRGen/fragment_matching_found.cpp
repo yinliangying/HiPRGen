@@ -227,17 +227,17 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 int tmp_reactant_hashes_index = 0;
                 int tmp_product_hashes_index = 0;
                 for (auto& hash : reactant_hashes) {
-                        std:cout<<tmp_reactant_hashes_index<< hash.first << hash.second << std::endl;
+                        std::cout<<tmp_reactant_hashes_index<< hash.first << hash.second << std::endl;
                         tmp_reactant_hashes_index++;
                     }
-                std:cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
+                std::cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
                 for (auto& hash : product_hashes) {
-                        std:cout<<product_hashes<< hash.first << hash.second << std::endl;
+                        std::cout<<product_hashes<< hash.first << hash.second << std::endl;
                         tmp_product_hashes_index++;
                     }
-                std:cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
+                std::cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
 
-                std:cout<<"isEqual"<<isEqual << std::endl;
+                std::cout<<"isEqual"<<isEqual << std::endl;
             }
 
             if (isEqual) {
