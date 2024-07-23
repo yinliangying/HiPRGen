@@ -294,13 +294,13 @@ def main():
             py_spend=time()-t_time
 
             cpp_res,cpp_spend=cpp_function(reaction,mol_entries,lib)
-            print(f"py_spend:{py_spend},cpp_spend:{cpp_spend}")
-            print(f"[reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]}")
-            print(f"[product0_id,product1_id]:{[product0_id, product1_id]}")
+            if cpp_res==py_res:
+                print(f"{cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend}")
+            # print(f"[reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]}")
+            # print(f"[product0_id,product1_id]:{[product0_id, product1_id]}")
             if cpp_res!=py_res:
-                print("cpp_res:",cpp_res)
-                print("py_res:",py_res)
-            print("*" * 100)
+                print(f"{py_res} {cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} [reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]}")
+            #print("*" * 100)
 
 
 if __name__ == '__main__':

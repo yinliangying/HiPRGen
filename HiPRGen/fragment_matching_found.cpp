@@ -316,7 +316,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     duration = duration;
-    std::cout << "Execution time: " << duration << " s" << std::endl;
+//    std::cout << "Execution time: " << duration << " s" << std::endl;
 
     return result;
 }
