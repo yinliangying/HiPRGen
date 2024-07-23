@@ -74,6 +74,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
     std::vector<std::vector<int>> reactant_fragment_indices_list;
     std::vector<std::vector<int>> product_fragment_indices_list;
     Return result;
+    result.r = false;
 
     if (number_of_reactants == 1) {
         for (int i = 0; i < reactant0_mol->number_of_fragment_data; i++) {
@@ -223,22 +224,22 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             }
 
             bool isEqual = areMapsEqual(reactant_hashes, product_hashes);
-            if (isEqual) {
-                int tmp_reactant_hashes_index = 0;
-                int tmp_product_hashes_index = 0;
-                for (auto& hash : reactant_hashes) {
-                        std::cout<<tmp_reactant_hashes_index<< hash.first << hash.second << std::endl;
-                        tmp_reactant_hashes_index++;
-                    }
-                std::cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
-                for (auto& hash : product_hashes) {
-                        std::cout<<tmp_product_hashes_index<< hash.first << hash.second << std::endl;
-                        tmp_product_hashes_index++;
-                    }
-                std::cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
-
-                std::cout<<"isEqual"<<isEqual << std::endl;
-            }
+//            if (isEqual) {
+//                int tmp_reactant_hashes_index = 0;
+//                int tmp_product_hashes_index = 0;
+//                for (auto& hash : reactant_hashes) {
+//                        std::cout<<tmp_reactant_hashes_index<< hash.first << hash.second << std::endl;
+//                        tmp_reactant_hashes_index++;
+//                    }
+//                std::cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
+//                for (auto& hash : product_hashes) {
+//                        std::cout<<tmp_product_hashes_index<< hash.first << hash.second << std::endl;
+//                        tmp_product_hashes_index++;
+//                    }
+//                std::cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
+//
+//                std::cout<<"isEqual"<<isEqual << std::endl;
+//            }
 
             if (isEqual) {
                 result.r = true;
