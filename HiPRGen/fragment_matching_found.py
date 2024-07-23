@@ -87,6 +87,7 @@ def ori_function( reaction, mols):
         if reaction['number_of_reactants'] == 1:
             reactant = mols[reaction['reactants'][0]]
             for i in range(len(reactant.fragment_data)):
+                print("number_of_reactants:" + str(reaction['number_of_reactants']) + " " + str(i))
                 reactant_fragment_indices_list.append([i])
 
 
@@ -99,11 +100,13 @@ def ori_function( reaction, mols):
                         reactant_1.fragment_data[j].number_of_bonds_broken <= 1):
 
                         reactant_fragment_indices_list.append([i,j])
+                        print("number_of_reactants:" + str(reaction['number_of_reactants']) + " " + str(i) + " " + str(j))
 
 
         if reaction['number_of_products'] == 1:
             product = mols[reaction['products'][0]]
             for i in range(len(product.fragment_data)):
+                print("number_of_products:" + str(reaction['number_of_products']) + " " + str(i))
                 product_fragment_indices_list.append([i])
 
 
@@ -116,6 +119,7 @@ def ori_function( reaction, mols):
                         product_1.fragment_data[j].number_of_bonds_broken <= 1):
 
                         product_fragment_indices_list.append([i,j])
+                        print("number_of_products:" + str(reaction['number_of_products']) + " " + str(i) + " " + str(j))
 
 
         for reactant_fragment_indices in reactant_fragment_indices_list:
@@ -140,6 +144,8 @@ def ori_function( reaction, mols):
                     for i in range(fragment_complex.number_of_fragments):
                         reactant_fragment_count += 1
                         tag = fragment_complex.fragment_hashes[i]
+                        print("reactant_hashes:" + str(reactant_fragment_indices) + " " + str(product_fragment_indices) + " " + str(frag_complex_index) + " " + tag)
+
                         if tag in reactant_hashes:
                             reactant_hashes[tag] += 1
                         else:
@@ -161,6 +167,7 @@ def ori_function( reaction, mols):
                     for i in range(fragment_complex.number_of_fragments):
                         product_fragment_count += 1
                         tag = fragment_complex.fragment_hashes[i]
+                        print("product_hashes:" + str(reactant_fragment_indices) + " " + str(product_fragment_indices) + " " + str(frag_complex_index) + " " + tag)
                         if tag in product_hashes:
                             product_hashes[tag] += 1
                         else:
@@ -218,7 +225,7 @@ def main():
     }
     t_time=time()
     res=ori_function(reaction,mol_entries)
-    print(f"res.r:{res.r},ori_time:{time()-t_time}")
+    print(f"res:{res},ori_time:{time()-t_time}")
 
     reactant0_mol_entry_ctype=create_molecule_entry(mol_entries,reactant0_id)
     reactant1_mol_entry_ctype=create_molecule_entry(mol_entries,reactant1_id)
