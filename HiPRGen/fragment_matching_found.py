@@ -293,13 +293,15 @@ def main():
             py_res=ori_function(copy.deepcopy(reaction),mol_entries)
             py_spend=time()-t_time
 
+            t_time=time()
             cpp_res,cpp_spend=cpp_function(reaction,mol_entries,lib)
+            cpp_all_spend=time()-t_time
             if cpp_res==py_res:
-                print(f"{cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend}")
+                print(f"{cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} {cpp_all_spend}")
             # print(f"[reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]}")
             # print(f"[product0_id,product1_id]:{[product0_id, product1_id]}")
             if cpp_res!=py_res:
-                print(f"{py_res} {cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} [reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]}")
+                print(f"{py_res} {cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} {cpp_all_spend} [reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]} [product0_id,product1_id]:{[product0_id, product1_id]}")
             #print("*" * 100)
 
 
