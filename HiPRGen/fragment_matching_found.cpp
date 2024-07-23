@@ -232,7 +232,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     }
                 std::cout<<"reactant_hashes.size()"<<reactant_hashes.size() << std::endl;
                 for (auto& hash : product_hashes) {
-                        std::cout<<product_hashes<< hash.first << hash.second << std::endl;
+                        std::cout<<tmp_product_hashes_index<< hash.first << hash.second << std::endl;
                         tmp_product_hashes_index++;
                     }
                 std::cout<<"product_hashes.size() "<<product_hashes.size() << std::endl;
