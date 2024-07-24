@@ -155,56 +155,6 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             std::unordered_map< char*, int, CharPtrHash, CharPtrEqual>  reactant_hashes;
             std::unordered_map< char*, int, CharPtrHash, CharPtrEqual>  product_hashes;
 
-            int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx][0],reactant_fragment_indices_list[tmp_reactant_fragment_idx][1]};
-            for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
-                int frag_complex_index = reactant_fragment_indices[reactant_index];
-
-                FragmentComplex fragment_complex;
-                if (reactant_index == 0) {
-                    fragment_complex = reactant0_mol->fragment_data[frag_complex_index];
-                }
-                else if (reactant_index == 1) {
-                    if (frag_complex_index == -1){
-                        continue;
-                    }
-                    fragment_complex = reactant1_mol->fragment_data[frag_complex_index];
-                }
-                else {
-                    continue;
-                }
-
-                for (auto& bond : fragment_complex.bonds_broken) {
-                    reactant_bonds_broken[reactant_bonds_broken_len][0][0]=reactant_index;
-                    reactant_bonds_broken[reactant_bonds_broken_len][0][1]=bond[0];
-                    reactant_bonds_broken[reactant_bonds_broken_len][1][0]=reactant_index;
-                    reactant_bonds_broken[reactant_bonds_broken_len][1][1]=bond[1];
-                    reactant_bonds_broken_len++;
-                }
-
-                for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
-                    reactant_fragment_count++;
-                    char* tag = fragment_complex.fragment_hashes[i];
-
-//                    std::cout << "reactant_hashes: ";
-//                    std::cout << "[" ;
-//                    for (const auto& index : reactant_fragment_indices) {
-//                        std::cout << index << " ";
-//                    }
-//                    std::cout << "][";
-//                    for (const auto& index : product_fragment_indices) {
-//                        std::cout << index << " ";
-//                    }
-//                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
-
-                    if (reactant_hashes.count(tag) > 0) {
-                        reactant_hashes[tag]++;
-                    }
-                    else {
-                        reactant_hashes[tag] = 1;
-                    }
-                }
-            }
-
             int product_fragment_indices[2]={product_fragment_indices_list[tmp_product_fragment_idx][0],product_fragment_indices_list[tmp_product_fragment_idx][1]};
             for (int product_index = 0; product_index < 2; product_index++) {
 
@@ -235,19 +185,6 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
                     product_fragment_count++;
                     char* tag = fragment_complex.fragment_hashes[i];
-//                     tmp_product_fragment_idx:0 tmp_product_fragment_idx  :0 product_index:  1  frag_complex_index: 0 i: 0
-//                     product1_mol->fragment_data[0].fragment_hashes[0]
-//                     product1_mol->fragment_data[0].fragment_hashes[0]
-//                    std::cout << "product_hashes: ";
-//                    std::cout << "[" ;
-//                    for (const auto& index : reactant_fragment_indices) {
-//                        std::cout << index << " ";
-//                    }
-//                    std::cout << "][";
-//                    for (const auto& index : product_fragment_indices) {
-//                        std::cout << index << " ";
-//                    }
-//                    std::cout <<"] " << frag_complex_index << " "  << tag << std::endl;
                     if (product_hashes.count(tag) > 0) {
                         product_hashes[tag]++;
                     }
@@ -256,6 +193,47 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     }
                 }
             }
+
+
+            int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx][0],reactant_fragment_indices_list[tmp_reactant_fragment_idx][1]};
+            for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
+                int frag_complex_index = reactant_fragment_indices[reactant_index];
+
+                FragmentComplex fragment_complex;
+                if (reactant_index == 0) {
+                    fragment_complex = reactant0_mol->fragment_data[frag_complex_index];
+                }
+                else if (reactant_index == 1) {
+                    if (frag_complex_index == -1){
+                        continue;
+                    }
+                    fragment_complex = reactant1_mol->fragment_data[frag_complex_index];
+                }
+                else {
+                    continue;
+                }
+
+                for (auto& bond : fragment_complex.bonds_broken) {
+                    reactant_bonds_broken[reactant_bonds_broken_len][0][0]=reactant_index;
+                    reactant_bonds_broken[reactant_bonds_broken_len][0][1]=bond[0];
+                    reactant_bonds_broken[reactant_bonds_broken_len][1][0]=reactant_index;
+                    reactant_bonds_broken[reactant_bonds_broken_len][1][1]=bond[1];
+                    reactant_bonds_broken_len++;
+                }
+
+                for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
+                    reactant_fragment_count++;
+                    char* tag = fragment_complex.fragment_hashes[i];
+
+                    if (reactant_hashes.count(tag) > 0) {
+                        reactant_hashes[tag]++;
+                    }
+                    else {
+                        reactant_hashes[tag] = 1;
+                    }
+                }
+            }
+
 
 
             if (number_of_reactants == 2 && number_of_products == 2 &&
