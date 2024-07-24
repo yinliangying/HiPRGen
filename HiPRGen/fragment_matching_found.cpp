@@ -123,7 +123,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 
     if (number_of_products == 1) {
         for (int i = 0; i < product0_mol->number_of_fragment_data; i++) {
-            std::cout << "number_of_products:" << number_of_products<<" "<<i << std::endl;
+//            std::cout << "number_of_products:" << number_of_products<<" "<<i << std::endl;
             product_fragment_indices_list[i][0] = i;
             product_fragment_indices_list[i][1] = -1;
             product_fragment_indices_list_len++;
@@ -135,7 +135,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             for (int j = 0; j < product1_mol->number_of_fragment_data; j++) {
                 if ((product0_mol->fragment_data[i].number_of_bonds_broken +
                         product1_mol->fragment_data[j].number_of_bonds_broken) <= 1) {
-                    std::cout << "number_of_products:" << number_of_products<<" "<<i<<j << std::endl;
+//                    std::cout << "number_of_products:" << number_of_products<<" "<<i<<j << std::endl;
                     product_fragment_indices_list[product_fragment_indices_list_len][0]=i;
                     product_fragment_indices_list[product_fragment_indices_list_len][1]=j;
                     product_fragment_indices_list_len++;
