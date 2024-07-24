@@ -235,7 +235,9 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
                     product_fragment_count++;
                     char* tag = fragment_complex.fragment_hashes[i];
-
+//                     tmp_product_fragment_idx:0 tmp_product_fragment_idx  :0 product_index:  1  frag_complex_index: 0 i: 0
+//                     product1_mol->fragment_data[0].fragment_hashes[0]
+//                     product1_mol->fragment_data[0].fragment_hashes[0]
 //                    std::cout << "product_hashes: ";
 //                    std::cout << "[" ;
 //                    for (const auto& index : reactant_fragment_indices) {

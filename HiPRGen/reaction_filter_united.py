@@ -378,7 +378,9 @@ def worker(
                     dest=DISPATCHER_RANK,
                     tag=NEW_REACTION_DB)
                 comm_filter_time+=time()-t_time
-
+            if "dG" in reaction:
+                if "fragment_matching_found" in reaction:
+                    print(f"XXX\t{reaction['dG']}\t{reaction['fragment_matching_found']}")
             if run_decision_tree(reaction,
                                  mol_entries,
                                  worker_payload.params,

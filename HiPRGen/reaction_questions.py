@@ -576,9 +576,10 @@ class fragment_matching_found(MSONable):
                     reaction['hashes'] = reactant_hashes
                     reaction['reactant_fragment_count'] = reactant_fragment_count
                     reaction['product_fragment_count'] = product_fragment_count
+                    reaction["fragment_matching_found"]= True
 
                     return True
-
+        reaction["fragment_matching_found"] = False
         return False
 
 
