@@ -26,7 +26,7 @@
 #include <vector>
 #include <chrono>
 const int MAX_LIST_SIZE = 29;
-
+using namespace std;
 typedef struct {
     int number_of_bonds_broken;
     int bonds_broken[MAX_LIST_SIZE][2];
@@ -160,21 +160,21 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 
                 int frag_complex_index = product_fragment_indices[product_index];
 
-                FragmentComplex fragment_complex;
+                FragmentComplex *fragment_complex;
                 if (product_index == 0) {
-                    fragment_complex = product0_mol->fragment_data[frag_complex_index];
+                    fragment_complex = &(product0_mol->fragment_data[frag_complex_index]);
                 }
                 else if (product_index == 1) {
                     if (frag_complex_index == -1){
                         continue;
                     }
-                    fragment_complex = product1_mol->fragment_data[frag_complex_index];
+                    fragment_complex = &(product1_mol->fragment_data[frag_complex_index]);
                 }
                 else {
                     continue;
                 }
 
-                for (auto& bond : fragment_complex.bonds_broken) {
+                for (auto& bond : fragment_complex->bonds_broken) {
                     product_bonds_broken[product_bonds_broken_len][0][0]=product_index;
                     product_bonds_broken[product_bonds_broken_len][0][1]=bond[0];
                     product_bonds_broken[product_bonds_broken_len][1][0]=product_index;
@@ -182,9 +182,9 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     product_bonds_broken_len++;
                 }
 
-                for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
+                for (int i = 0; i < fragment_complex->number_of_fragments; i++) {
                     product_fragment_count++;
-                    char* tag = fragment_complex.fragment_hashes[i];
+                    char* tag = fragment_complex->fragment_hashes[i];
                     if (product_hashes.count(tag) > 0) {
                         product_hashes[tag]++;
                     }
@@ -199,21 +199,21 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
                 int frag_complex_index = reactant_fragment_indices[reactant_index];
 
-                FragmentComplex fragment_complex;
+                FragmentComplex *fragment_complex;
                 if (reactant_index == 0) {
-                    fragment_complex = reactant0_mol->fragment_data[frag_complex_index];
+                    fragment_complex =&( reactant0_mol->fragment_data[frag_complex_index]);
                 }
                 else if (reactant_index == 1) {
                     if (frag_complex_index == -1){
                         continue;
                     }
-                    fragment_complex = reactant1_mol->fragment_data[frag_complex_index];
+                    fragment_complex = &(reactant1_mol->fragment_data[frag_complex_index]);
                 }
                 else {
                     continue;
                 }
 
-                for (auto& bond : fragment_complex.bonds_broken) {
+                for (auto& bond : fragment_complex->bonds_broken) {
                     reactant_bonds_broken[reactant_bonds_broken_len][0][0]=reactant_index;
                     reactant_bonds_broken[reactant_bonds_broken_len][0][1]=bond[0];
                     reactant_bonds_broken[reactant_bonds_broken_len][1][0]=reactant_index;
@@ -221,9 +221,9 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                     reactant_bonds_broken_len++;
                 }
 
-                for (int i = 0; i < fragment_complex.number_of_fragments; i++) {
+                for (int i = 0; i < fragment_complex->number_of_fragments; i++) {
                     reactant_fragment_count++;
-                    char* tag = fragment_complex.fragment_hashes[i];
+                    char* tag = fragment_complex->fragment_hashes[i];
 
                     if (reactant_hashes.count(tag) > 0) {
                         reactant_hashes[tag]++;
