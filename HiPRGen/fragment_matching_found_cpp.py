@@ -27,8 +27,8 @@ with open("old_lib/mol_entries.pickle", 'rb') as f:
 # os.system(r"sed -i '1s/^/const int MAX_LIST_SIZE = %s;\n/' fragment_matching_found2.cpp "%MAX_LIST_SIZE)
 os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
 print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK" )
-os.system("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-print("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
 
 
 class FragmentComplex_c_type(Structure):
