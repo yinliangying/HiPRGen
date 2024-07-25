@@ -9,26 +9,8 @@ import copy
 
 
 
-with open("old_lib/mol_entries.pickle", 'rb') as f:
-    mol_entries = pickle.load(f)
 
-# #获取最大数组尺寸
-# MAX_LIST_SIZE = 0
-# for i in range(len(mol_entries)):
-#     mol_entry = mol_entries[i]
-#     MAX_LIST_SIZE = max(MAX_LIST_SIZE, len(mol_entry.fragment_data))
-#     for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
-#         number_of_bonds_broken = fragment_complex.number_of_bonds_broken
-#         number_of_fragments = fragment_complex.number_of_fragments
-#         MAX_LIST_SIZE = max(MAX_LIST_SIZE, number_of_bonds_broken, number_of_fragments)
-# print("MAX_LIST_SIZE:",MAX_LIST_SIZE)
-#编译cpp
-# os.system(r"cp fragment_matching_found.cpp fragment_matching_found2.cpp")
-# os.system(r"sed -i '1s/^/const int MAX_LIST_SIZE = %s;\n/' fragment_matching_found2.cpp "%MAX_LIST_SIZE)
-os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK" )
-os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+
 
 
 class FragmentComplex_c_type(Structure):
@@ -57,6 +39,16 @@ class Return_c_type(Structure):
         ("hashes_key", ctypes.POINTER(c_char_p)),
         ("hashes_value", ctypes.POINTER(c_int)),
         ("num_hashes", c_int)]
+
+#定义cpp 函数参数类型
+lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
+#定义函数参数类型和返回值类型
+lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type)]
+lib.fragment_matching_found.restype = Return_c_type
 
 def create_molecule_entry(mol_entries,reactant_id):
     molecule_entry_ctype = MoleculeEntry_c_type()
@@ -92,24 +84,6 @@ def create_molecule_entry(mol_entries,reactant_id):
 
     return molecule_entry_ctype
 
-#预加载cpp交互数据
-for i in range(len(mol_entries)):
-    mol_entry_ctype=create_molecule_entry(mol_entries,i)
-    if mol_entry_ctype is None:
-        print(f"max_list_size skip:mol_id:{i}")
-        mol_entries[i].mol_entry_ctype=None
-        continue
-    mol_entries[i].mol_entry_ctype=mol_entry_ctype
-
-#定义cpp 函数参数类型
-lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
-#定义函数参数类型和返回值类型
-lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
-                    ctypes.POINTER(MoleculeEntry_c_type),
-                    ctypes.POINTER(MoleculeEntry_c_type),
-                    ctypes.POINTER(MoleculeEntry_c_type),
-                    ctypes.POINTER(MoleculeEntry_c_type)]
-lib.fragment_matching_found.restype = Return_c_type
 
 
 
@@ -281,6 +255,17 @@ def ori_function( reaction, mols):
 
 def main():
     # workdir /root/test_fmol_unfilter    ~/HiPRGen/HiPRGen# cp  fragment_matching_found.cpp  fragment_matching_found_cpp.py    /root/test_fmol_unfilter/
+
+    os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    with open("old_lib/mol_entries.pickle", 'rb') as f:
+        mol_entries = pickle.load(f)
+    # 预加载cpp交互数据
+    for i in range(len(mol_entries)):
+        mol_entry_ctype = create_molecule_entry(mol_entries, i)
+        mol_entries[i].mol_entry_ctype = mol_entry_ctype
 
     ij_times=0
     total_py_spend=0

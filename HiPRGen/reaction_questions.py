@@ -11,17 +11,20 @@ import traceback
 from functools import wraps
 
 def timer(func):
-    func.calls = 0
-    func.spend=0 
+    func.call_times = 0
+    func.spend=0
+    func.true_times=0
     @wraps(func)
     def wrapper(*args, **kwargs):
-        func.calls += 1
+        func.call_times += 1
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
         func.spend+=end_time - start_time
-        if func.calls%1000==0:
-            print(f"{func.__qualname__}  {func.calls}  {func.spend:.6f}s")
+        if result == True:
+            func.true_times+=1
+        if func.call_times%1000==0:
+            print(f"{func.__qualname__}  call_times:{func.call_times}  spend:{func.spend:.6f}s true_times:{func.true_times}")
         return result
     
     return wrapper
@@ -767,9 +770,51 @@ class single_product_with_ring_form_two(MSONable):
         return False
 
 
+class unit_data(MSONable):
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return "增量更新数据模式下，值计算和新物质有关的反应，如果和反应新物质无关，返回True"
+
+    @timer
+    def __call__(self, reaction, mols, params):
+        reactants=reaction['reactants']
+        products=reaction['products']
+        if hasattr(mols[reactants[0]], 'source') and hasattr(mols[products[0]], 'source') \
+                and hasattr(mols[reactants[1]], 'source') and hasattr(mols[products[1]], 'source'):
+            # 增量模式
+            reactants_source = None
+            if mols[1] != -1:
+                # print(f"mol_entries[reactants[1]].source:{mol_entries[reactants[1]].source}")
+                if mols[reactants[0]].source == "old" and mols[reactants[1]].source == "old":
+                    reactants_source = "old"
+            else:
+                if mols[reactants[0]].source == "old":
+                    reactants_source = "old"
+            products_source = None
+            if products[1] != -1:
+                # print(f"mol_entries[products[1]].source:{mol_entries[products[1]].source}")
+                if mols[products[0]].source == "old" and mols[products[1]].source == "old":
+                    products_source = "old"
+                    # print(f"products_source:{products_source}")
+            else:
+                if mols[products[0]].source == "old":
+                    products_source = "old"
+            # print(reactants_source, products_source)
+            if reactants_source == "old" and products_source == "old":
+                # print("opt_filtered")
+                return True
+            else:
+                return False # print("opt_unfiltered")
+        else:
+            # 从头计算模式
+            return False
+
 
 default_reaction_decision_tree = [
 
+    (unit_data(), Terminal.DISCARD),
     (metal_metal_reaction(), Terminal.DISCARD),
     # redox branch
     (is_redox_reaction(), [

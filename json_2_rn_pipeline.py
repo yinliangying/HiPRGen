@@ -39,40 +39,54 @@ def apply_species_filter(json_path: str,network_folder: str):
 
 
 def get_rn_db(pickle_path: str,network_folder: str):
-    # for a_file in os.listdir('../../../../Downloads/'):
-    #     if a_file.endswith('sqlite'):
-    #         os.remove(a_file)
+    print("删除旧文件")
+    if os.path.exists(f'{network_folder}/rn.sqlite'):
+        os.remove(f'{network_folder}/rn.sqlite')
+    if os.path.exists(f'{network_folder}/buckets.sqlite'):
+        os.remove(f'{network_folder}/buckets.sqlite')
+
+    # 编译cpp
+    os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
 
     with open(pickle_path, 'rb') as file:
         mol_entries = pickle.load(file)
-    # mol_entries = loadfn(pickle_path)
+
+    print("预加载cpp交互数据")
+    from HiPRGen.fragment_matching_found_cpp import create_molecule_entry
+    for i in range(len(mol_entries)):
+        mol_entry_ctype = create_molecule_entry(mol_entries, i)
+        mol_entries[i].mol_entry_ctype = mol_entry_ctype
+
+
     bucket(mol_entries, f'{network_folder}/buckets.sqlite')
     params = {
         'temperature': ROOM_TEMP,
         'electron_free_energy': -1.4
     }
-
     dispatcher_payload = DispatcherPayload(
         f'{network_folder}/buckets.sqlite',
         f'{network_folder}/rn.sqlite',
         f'{network_folder}/reaction_report.tex'
     )
-
     worker_payload = WorkerPayload(
         f'{network_folder}/buckets.sqlite',
         default_reaction_decision_tree,
         params,
         Terminal.DISCARD
     )
-
     dumpfn(dispatcher_payload, f'{network_folder}/dispatcher_payload.json')
     dumpfn(worker_payload, f'{network_folder}/worker_payload.json')
+    number_of_threads = os.popen("nproc").read().strip()
+    print(f"number_of_threads:{number_of_threads}")
     subprocess.run(
         [
             'mpirun',
             '--use-hwthread-cpus',
             '-n',
-            str(64),
+            number_of_threads,
             'python',
             'run_network_generation.py',
             pickle_path,
@@ -81,13 +95,19 @@ def get_rn_db(pickle_path: str,network_folder: str):
         ]
     )
 
-def unit_lib(united_lib_path, new_lib_json_path,old_lib_path):
+def unit_rn_db(united_network_folder, new_lib_json_path, new_network_folder, old_network_folder):
+    print("删除旧文件")
+    if os.path.exists(f"{united_network_folder}/buckets.sqlite"):
+        os.remove(f"{united_network_folder}/buckets.sqlite")
+    if os.path.exists(f"{united_network_folder}/rn.sqlite"):
+        os.remove(f"{united_network_folder}/rn.sqlite")
+    if os.path.exists(f"{united_network_folder}/mol_entries.pickle"):
+        os.remove(f"{united_network_folder}/mol_entries.pickle")
 
-    #合并old new mol_entries
-    new_mol_entries=apply_species_filter(new_lib_path, new_lib_json_path)
-    with open(f"{old_lib_path}/mol_entries.pickle", 'rb') as file:
+    print("合并old new mol_entries")
+    new_mol_entries=apply_species_filter(new_lib_json_path, new_network_folder)
+    with open(f"{old_network_folder}/mol_entries.pickle", 'rb') as file:
         old_mol_entries = pickle.load(file)
-
     united_mol_entries=[]
     for mol in old_mol_entries:
         mol.source="old"
@@ -96,61 +116,79 @@ def unit_lib(united_lib_path, new_lib_json_path,old_lib_path):
         mol.source="new"
         mol.ind=len(united_mol_entries)
         united_mol_entries.append(mol)
+    if not os.path.exists(united_network_folder):
+        os.mkdir(united_network_folder)
 
-    with open(f"{united_lib_path}/mol_entries.pickle", 'wb') as f:
+    #编译cpp
+    os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+
+    print("预加载cpp交互数据")
+    from HiPRGen.fragment_matching_found_cpp import create_molecule_entry
+    for i in range(len(united_mol_entries)):
+        mol_entry_ctype = create_molecule_entry(united_mol_entries, i)
+        united_mol_entries[i].mol_entry_ctype = mol_entry_ctype
+
+    print("保存mol_entries")
+    with open(f"{united_network_folder}/mol_entries.pickle", 'wb') as f:
         pickle.dump(united_mol_entries, f)
 
-    #在old 基础上建立united rn
-    shutil.copy(f"{old_lib_path}/rn.sqlite", f"{united_lib_path}/rn.sqlite")
-    rn_con = sqlite3.connect(  f"{united_lib_path}/rn.sqlite")
+    print("在old 基础上建立united rn")
+    shutil.copy(f"{old_network_folder}/rn.sqlite", f"{united_network_folder}/rn.sqlite")
+    rn_con = sqlite3.connect(  f"{united_network_folder}/rn.sqlite")
     rn_cur = rn_con.cursor()
     rn_cur.execute("DROP TABLE IF EXISTS metadata;")
     rn_con.commit()
 
-    bucket(united_mol_entries, f'{united_lib_path}/buckets.sqlite')
+
+    bucket(united_mol_entries, f'{united_network_folder}/buckets.sqlite')
     params = {
         'temperature': ROOM_TEMP,
         'electron_free_energy': -1.4
     }
     dispatcher_payload = DispatcherPayload(
-        f'{united_lib_path}/buckets.sqlite',
-        f'{united_lib_path}/rn.sqlite',
-        f'{united_lib_path}/reaction_report.tex'
+        f'{united_network_folder}/buckets.sqlite',
+        f'{united_network_folder}/rn.sqlite',
+        f'{united_network_folder}/reaction_report.tex'
     )
     worker_payload = WorkerPayload(
-        f'{united_lib_path}/buckets.sqlite',
+        f'{united_network_folder}/buckets.sqlite',
         default_reaction_decision_tree,
         params,
         Terminal.DISCARD
     )
-    dumpfn(dispatcher_payload, f'{united_lib_path}/dispatcher_payload.json')
-    dumpfn(worker_payload, f'{united_lib_path}/worker_payload.json')
+    dumpfn(dispatcher_payload, f'{united_network_folder}/dispatcher_payload.json')
+    dumpfn(worker_payload, f'{united_network_folder}/worker_payload.json')
+    number_of_threads = os.popen("nproc").read().strip()
+    print(f"number_of_threads:{number_of_threads}")
     subprocess.run(
         [
             'mpirun',
             '--use-hwthread-cpus',
             '-n',
-            str(64),
+            "2",#number_of_threads,
             'python',
-            'run_network_generation_united.py',
-            f"{united_lib_path}/mol_entries.pickle" 
-            f'{united_lib_path}/dispatcher_payload.json' 
-            f'{united_lib_path}/worker_payload.json'
+            'run_network_generation.py',
+            f"{united_network_folder}/mol_entries.pickle",
+            f'{united_network_folder}/dispatcher_payload.json',
+            f'{united_network_folder}/worker_payload.json'
         ]
     )
 
 if __name__ == '__main__':
+    # # workdir /root/test_fmol_unfilter    ~/HiPRGen/HiPRGen# cp  fragment_matching_found.cpp  fragment_matching_found_cpp.py 以及这个文件   /root/test_fmol_unfilter/
 
-    old_lib_path="old_lib"  # old_lib/rn.sqlite  old_lib/buckets.sqlite old_lib/mol_entries.pickle
-    new_lib_path="new_lib"
-    united_lib_path="united_lib"
+    old_network_folder= "old_lib"  # old_lib/rn.sqlite  old_lib/buckets.sqlite old_lib/mol_entries.pickle
+    new_network_folder= "new_lib"
+    united_network_folder= "united_lib"
+    new_lib_json_path=f"{new_network_folder}/real_dump.json"
+    apply_species_filter(new_lib_json_path, new_network_folder)
+    get_rn_db("new_lib/mol_entries.pickle", new_network_folder)
 
-    new_lib_json_path=f"{new_lib_path}/sample.json"
-    # apply_species_filter(new_lib_path, new_lib_json_path)
-    # get_rn_db(new_lib_json_path ,new_lib_path)
 
-
-    unit_lib(united_lib_path, new_lib_json_path,old_lib_path)
+    unit_rn_db(united_network_folder, new_lib_json_path, new_network_folder, old_network_folder)
 
 
 

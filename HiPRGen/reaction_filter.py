@@ -27,6 +27,15 @@ description: the worker processes from phase 3 are sending their reactions to th
 the code in this file is designed to run on a compute cluster using MPI.
 """
 
+def table_exists(connection, table_name):
+    cursor = connection.cursor()
+    query = """
+    SELECT name FROM sqlite_master 
+    WHERE type='table' AND name=?;
+    """
+    cursor.execute(query, (table_name,))
+    result = cursor.fetchone()
+    return result is not None
 
 create_metadata_table = """
     CREATE TABLE metadata (
@@ -119,7 +128,13 @@ def dispatcher(
     rn_con = sqlite3.connect(dispatcher_payload.reaction_network_db_file)
     rn_cur = rn_con.cursor()
     rn_cur.execute(create_metadata_table)
-    rn_cur.execute(create_reactions_table)
+
+    if not table_exists(rn_con, "reactions"):
+        #从头建立数据模式
+        log_message("creating reaction network db")
+        rn_cur.execute(create_reactions_table)
+    else:#追加数据模式
+        pass
     rn_con.commit()
 
     log_message("initializing report generator")
@@ -146,7 +161,10 @@ def dispatcher(
 
     log_message("all workers running")
 
-    reaction_index = 0
+    res = rn_cur.execute("select count(*) from reactions")
+    for row in res:
+        reaction_index = row[0]
+    log_message("old reaction index:", reaction_index)
 
     log_message("handling requests")
 
@@ -253,64 +271,81 @@ def worker(
 ):
 
     comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+
     con = sqlite3.connect(worker_payload.bucket_db_file)
     cur = con.cursor()
 
-
     comm.send(None, dest=DISPATCHER_RANK, tag=INITIALIZATION_FINISHED)
 
+    total_time = 0
+    comm_time = 0
+    sql_time = 0
+    filter_time = 0
+    batch_times = 0
     while True:
+        if rank == 1:
+            batch_times += 1
+            print(
+                f"total_time:{total_time} comm_time:{comm_time}  sql_time:{sql_time}  filter_time:{filter_time}   batch_times:{batch_times}   ")
+
+        s_time=time()
+
+        t_time = time()
         comm.send(None, dest=DISPATCHER_RANK, tag=SEND_ME_A_WORK_BATCH)
         work_batch = comm.recv(source=DISPATCHER_RANK, tag=HERE_IS_A_WORK_BATCH)
+        comm_time += time() - t_time
 
         if work_batch is None:
             break
 
-
         composition_id, group_id_0, group_id_1 = work_batch
-
 
         if group_id_0 == group_id_1:
 
+            t_time = time()
             res = cur.execute(
                 get_complex_group_sql,
                 (composition_id, group_id_0))
+            sql_time += time() - t_time
 
             bucket = []
             for row in res:
-                bucket.append((row[0],row[1]))
+                bucket.append((row[0], row[1]))
 
             iterator = permutations(bucket, r=2)
 
         else:
-
+            t_time = time()
             res_0 = cur.execute(
                 get_complex_group_sql,
                 (composition_id, group_id_0))
+            sql_time += time() - t_time
 
             bucket_0 = []
             for row in res_0:
-                bucket_0.append((row[0],row[1]))
+                bucket_0.append((row[0], row[1]))
 
+            t_time = time()
             res_1 = cur.execute(
                 get_complex_group_sql,
                 (composition_id, group_id_1))
+            sql_time += time() - t_time
 
             bucket_1 = []
             for row in res_1:
-                bucket_1.append((row[0],row[1]))
+                bucket_1.append((row[0], row[1]))
 
             iterator = product(bucket_0, bucket_1)
 
-
-
         for (reactants, products) in iterator:
             reaction = {
-                'reactants' : reactants,
-                'products' : products,
-                'number_of_reactants' : len([i for i in reactants if i != -1]),
-                'number_of_products' : len([i for i in products if i != -1])}
+                'reactants': reactants,
+                'products': products,
+                'number_of_reactants': len([i for i in reactants if i != -1]),
+                'number_of_products': len([i for i in products if i != -1])}
 
+            t1_time = time()
 
             decision_pathway = []
             if run_decision_tree(reaction,
@@ -320,17 +355,22 @@ def worker(
                                  decision_pathway
                                  ):
 
+                t_time = time()
                 comm.send(
                     reaction,
                     dest=DISPATCHER_RANK,
                     tag=NEW_REACTION_DB)
+                comm_time += time() - t_time
 
-
+            # if "dG" in reaction:
+            #     if "fragment_matching_found" in reaction:
+            #         print(f"XXX\t{reaction['dG']}\t{reaction['fragment_matching_found']}")
             if run_decision_tree(reaction,
                                  mol_entries,
                                  worker_payload.params,
                                  worker_payload.logging_decision_tree):
 
+                t_time = time()
                 comm.send(
                     (reaction,
                      '\n'.join([str(f) for f in decision_pathway])
@@ -338,3 +378,8 @@ def worker(
 
                     dest=DISPATCHER_RANK,
                     tag=NEW_REACTION_LOGGING)
+                comm_time += time() - t_time
+
+            filter_time += time() - t1_time
+
+        total_time += time() - s_time
