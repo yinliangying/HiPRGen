@@ -11,7 +11,7 @@ import traceback
 from functools import wraps
 from HiPRGen.fragment_matching_found_cpp import cpp_function
 import HiPRGen.fragment_matching_found_cpp
-
+from mpi4py import MPI
 def timer(func):
     func.call_times = 0
     func.spend=0
@@ -26,7 +26,10 @@ def timer(func):
         if result == True:
             func.true_times+=1
         if func.call_times%1000==0:
-            print(f"{func.__qualname__}  call_times:{func.call_times}  spend:{func.spend:.6f}s true_times:{func.true_times}")
+            comm = MPI.COMM_WORLD
+            rank = comm.Get_rank()
+            if rank==1:
+                print(f"{func.__qualname__}  call_times:{func.call_times}  spend:{func.spend:.6f}s true_times:{func.true_times}")
         return result
     
     return wrapper

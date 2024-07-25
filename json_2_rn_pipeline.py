@@ -156,7 +156,7 @@ def unit_rn_db(united_network_folder, new_lib_json_path, new_network_folder, old
             'mpirun',
             '--use-hwthread-cpus',
             '-n',
-            "2",#number_of_threads,
+            number_of_threads,
             'python',
             'run_network_generation.py',
             f"{united_network_folder}/mol_entries.pickle",
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     get_rn_db("new_lib/mol_entries.pickle", new_network_folder)
 
 
-    unit_rn_db(united_network_folder, new_lib_json_path, new_network_folder, old_network_folder)
+    #unit_rn_db(united_network_folder, new_lib_json_path, new_network_folder, old_network_folder)
 
 
 
