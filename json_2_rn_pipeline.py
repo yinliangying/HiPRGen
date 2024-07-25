@@ -48,8 +48,8 @@ def get_rn_db(pickle_path: str,network_folder: str):
     # 编译cpp
     os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
     print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
-    os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-    print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
 
     with open(pickle_path, 'rb') as file:
         mol_entries = pickle.load(file)
@@ -122,8 +122,8 @@ def unit_rn_db(united_network_folder, new_lib_json_path, new_network_folder, old
     #编译cpp
     os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
     print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
-    os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-    print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
 
     print("预加载cpp交互数据")
     from HiPRGen.fragment_matching_found_cpp import create_molecule_entry
