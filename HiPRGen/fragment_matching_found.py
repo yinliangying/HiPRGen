@@ -257,7 +257,7 @@ def main():
             number_of_fragments = fragment_complex.number_of_fragments
             max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
     print("max_list_size:",max_list_size)
-    os.system(f"sed -i '1s/^/const int MAX_LIST_SIZE = {max_list_size};\n/' fragment_matching_found.cpp ")
+    os.system(r"sed -i '1s/^/const int MAX_LIST_SIZE = %s;\n/' fragment_matching_found.cpp "%max_list_size)
     os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
     print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK" )
     os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
