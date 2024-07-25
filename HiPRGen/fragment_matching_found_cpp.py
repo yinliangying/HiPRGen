@@ -6,6 +6,58 @@ from ctypes import Structure, c_int, POINTER,c_char,c_char_p,c_bool
 from HiPRGen.mol_entry import MoleculeEntry
 from time import time
 import copy
+
+
+
+with open("old_lib/mol_entries.pickle", 'rb') as f:
+    mol_entries = pickle.load(f)
+
+# #获取最大数组尺寸
+# MAX_LIST_SIZE = 0
+# for i in range(len(mol_entries)):
+#     mol_entry = mol_entries[i]
+#     MAX_LIST_SIZE = max(MAX_LIST_SIZE, len(mol_entry.fragment_data))
+#     for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
+#         number_of_bonds_broken = fragment_complex.number_of_bonds_broken
+#         number_of_fragments = fragment_complex.number_of_fragments
+#         MAX_LIST_SIZE = max(MAX_LIST_SIZE, number_of_bonds_broken, number_of_fragments)
+# print("MAX_LIST_SIZE:",MAX_LIST_SIZE)
+#编译cpp
+# os.system(r"cp fragment_matching_found.cpp fragment_matching_found2.cpp")
+# os.system(r"sed -i '1s/^/const int MAX_LIST_SIZE = %s;\n/' fragment_matching_found2.cpp "%MAX_LIST_SIZE)
+os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK" )
+os.system("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+print("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+
+
+class FragmentComplex_c_type(Structure):
+
+    _fields_ = [
+                ("number_of_bonds_broken", c_int),
+                ("bonds_broken", ctypes.POINTER(c_int*2)),
+                ("number_of_fragments", c_int),
+                ("fragment_hashes", ctypes.POINTER(c_char_p))]
+
+class MoleculeEntry_c_type(Structure):
+    _fields_ = [
+        ("number_of_fragment_data",c_int),
+        ("fragment_data", ctypes.POINTER(FragmentComplex_c_type)),
+    ]
+
+class Return_c_type(Structure):
+    _fields_ = [
+        ("r", ctypes.c_bool),
+        ("reactant_fragment_count", c_int),
+        ("product_fragment_count", c_int),
+        ("num_reactant_bonds_broken", c_int),
+        ("num_product_bonds_broken", c_int),
+        ("reactant_bonds_broken", ctypes.POINTER(c_int*2*2)),
+        ("product_bonds_broken", ctypes.POINTER(c_int*2*2)),
+        ("hashes_key", ctypes.POINTER(c_char_p)),
+        ("hashes_value", ctypes.POINTER(c_int)),
+        ("num_hashes", c_int)]
+
 def create_molecule_entry(mol_entries,reactant_id):
     molecule_entry_ctype = MoleculeEntry_c_type()
     if reactant_id == -1:
@@ -13,14 +65,14 @@ def create_molecule_entry(mol_entries,reactant_id):
 
     mol_entry = mol_entries[reactant_id]
 
-    max_list_size = len(mol_entry.fragment_data)
-    for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
-        number_of_bonds_broken = fragment_complex.number_of_bonds_broken
-        number_of_fragments = fragment_complex.number_of_fragments
-        max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
-    if max_list_size>MAX_LIST_SIZE:
-        print(f"mol_id:{reactant_id},max_list_size:{max_list_size} skip")
-        return None
+    # max_list_size = len(mol_entry.fragment_data)
+    # for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
+    #     number_of_bonds_broken = fragment_complex.number_of_bonds_broken
+    #     number_of_fragments = fragment_complex.number_of_fragments
+    #     max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
+    # if max_list_size>MAX_LIST_SIZE:
+    #     print(f"mol_id:{reactant_id},max_list_size:{max_list_size} skip")
+    #     return None
 
     number_of_fragment_data=0
     for f_idx,fragment_complex in enumerate(mol_entry.fragment_data):
@@ -47,38 +99,27 @@ def create_molecule_entry(mol_entries,reactant_id):
 
     return molecule_entry_ctype
 
+#预加载cpp交互数据
+for i in range(len(mol_entries)):
+    mol_entry_ctype=create_molecule_entry(mol_entries,i)
+    if mol_entry_ctype is None:
+        print(f"max_list_size skip:mol_id:{i}")
+        mol_entries[i].mol_entry_ctype=None
+        continue
+    mol_entries[i].mol_entry_ctype=mol_entry_ctype
+
+#定义cpp 函数参数类型
+lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
+#定义函数参数类型和返回值类型
+lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type),
+                    ctypes.POINTER(MoleculeEntry_c_type)]
+lib.fragment_matching_found.restype = Return_c_type
 
 
 
-MAX_LIST_SIZE = 29 #和cpp文件同步修改
-#MAX_HASH_STR_SIZE = 100
-
-class FragmentComplex_c_type(Structure):
-    _fields_ = [
-                ("number_of_bonds_broken", c_int),
-                ("bonds_broken", c_int*2*MAX_LIST_SIZE),
-                ("number_of_fragments", c_int),
-                ("fragment_hashes", c_char_p*MAX_LIST_SIZE)]
-
-class MoleculeEntry_c_type(Structure):
-    _fields_ = [
-        ("number_of_fragment_data",c_int),
-        ("fragment_data", FragmentComplex_c_type*MAX_LIST_SIZE),
-    ]
-
-
-class Return_c_type(Structure):
-    _fields_ = [
-        ("r", ctypes.c_bool),
-        ("reactant_fragment_count", c_int),
-        ("product_fragment_count", c_int),
-        ("num_reactant_bonds_broken", c_int),
-        ("num_product_bonds_broken", c_int),
-        ("reactant_bonds_broken", c_int*2*2*MAX_LIST_SIZE),
-        ("product_bonds_broken", c_int*2*2*MAX_LIST_SIZE),
-        ("hashes_key", c_char_p*MAX_LIST_SIZE),
-        ("hashes_value", c_int*MAX_LIST_SIZE),
-        ("num_hashes", c_int)]
 
 def cpp_function( reaction, mol_entries,lib):
 
@@ -246,42 +287,7 @@ def ori_function( reaction, mols):
         return False
 
 def main():
-    with open("old_lib/mol_entries.pickle", 'rb') as f:
-        mol_entries = pickle.load(f)
-    max_list_size = 0
-    for i in range(len(mol_entries)):
-        mol_entry = mol_entries[i]
-        max_list_size = max(max_list_size, len(mol_entry.fragment_data))
-        for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
-            number_of_bonds_broken = fragment_complex.number_of_bonds_broken
-            number_of_fragments = fragment_complex.number_of_fragments
-            max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
-    print("max_list_size:",max_list_size)
-    os.system(r"cp fragment_matching_found.cpp fragment_matching_found2.cpp")
-    os.system(r"sed -i '1s/^/const int MAX_LIST_SIZE = %s;\n/' fragment_matching_found2.cpp "%max_list_size)
-    os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-    print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK" )
-    os.system("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-    print("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
-    lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
-    #定义函数参数类型和返回值类型
-    lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
-                        ctypes.POINTER(MoleculeEntry_c_type),
-                        ctypes.POINTER(MoleculeEntry_c_type),
-                        ctypes.POINTER(MoleculeEntry_c_type),
-                        ctypes.POINTER(MoleculeEntry_c_type)]
-    lib.fragment_matching_found.restype = Return_c_type
-
-
-
-
-    for i in range(len(mol_entries)):
-        mol_entry_ctype=create_molecule_entry(mol_entries,i)
-        if mol_entry_ctype is None:
-            print(f"max_list_size skip:mol_id:{i}")
-            mol_entries[i].mol_entry_ctype=None
-            continue
-        mol_entries[i].mol_entry_ctype=mol_entry_ctype
+    # workdir /root/test_fmol_unfilter    ~/HiPRGen/HiPRGen# cp  fragment_matching_found.cpp  fragment_matching_found_cpp.py    /root/test_fmol_unfilter/
 
     ij_times=0
     total_py_spend=0
