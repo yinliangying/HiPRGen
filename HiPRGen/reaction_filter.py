@@ -209,12 +209,12 @@ def dispatcher(
                 work_batch = work_batch_list.pop()
                 comm.send(work_batch, dest=rank, tag=HERE_IS_A_WORK_BATCH)
                 composition_id, group_id_0, group_id_1 = work_batch
-                log_message(
-                    "dispatched",
-                    composition_names[composition_id],
-                    ": group ids:",
-                    group_id_0, group_id_1
-                )
+                # log_message(
+                #     "dispatched",
+                #     composition_names[composition_id],
+                #     ": group ids:",
+                #     group_id_0, group_id_1
+                # )
 
 
         elif tag == NEW_REACTION_DB:
