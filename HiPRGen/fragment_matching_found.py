@@ -271,10 +271,10 @@ def main():
 
     for i in range(len(mol_entries)):
         for j in range(len(mol_entries)):
-            reactant0_id=i
-            reactant1_id=-1
-            product0_id=j
-            product1_id=-1
+            reactant0_id=i #1
+            reactant1_id=-1 #2
+            product0_id=j  #1
+            product1_id=-1 #1
 
             if reactant1_id==-1:
                 number_of_reactants=1

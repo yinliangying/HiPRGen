@@ -87,8 +87,8 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 
     vector<pair<int, int>> reactant_fragment_indices_list;
     vector<pair<int, int>> product_fragment_indices_list;
-//    int reactant_fragment_indices_list[MAX_LIST_SIZE][2]; //todo:这个数组会越界
-//    int product_fragment_indices_list[MAX_LIST_SIZE][2];//todo:这个数组会越界
+//    int reactant_fragment_indices_list[MAX_LIST_SIZE][2]; // 这个数组会越界
+//    int product_fragment_indices_list[MAX_LIST_SIZE][2];// 这个数组会越界
 //    int reactant_fragment_indices_list_len=0;
 //    int product_fragment_indices_list_len=0;
     Return result;
