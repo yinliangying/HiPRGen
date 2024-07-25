@@ -85,22 +85,22 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
     auto start = std::chrono::high_resolution_clock::now();
 
 
-//    std::vector<std::vector<int>> reactant_fragment_indices_list;
-//    std::vector<std::vector<int>> product_fragment_indices_list;
-    int reactant_fragment_indices_list[MAX_LIST_SIZE][2]; //todo:这个数组会越界
-    int product_fragment_indices_list[MAX_LIST_SIZE][2];//todo:这个数组会越界
-    int reactant_fragment_indices_list_len=0;
-    int product_fragment_indices_list_len=0;
+    vector<pair<int, int>> reactant_fragment_indices_list;
+    vector<pair<int, int>> product_fragment_indices_list;
+//    int reactant_fragment_indices_list[MAX_LIST_SIZE][2]; //todo:这个数组会越界
+//    int product_fragment_indices_list[MAX_LIST_SIZE][2];//todo:这个数组会越界
+//    int reactant_fragment_indices_list_len=0;
+//    int product_fragment_indices_list_len=0;
     Return result;
     result.r = false;
 
     if (number_of_reactants == 1) {
         for (int i = 0; i < reactant0_mol->number_of_fragment_data; i++) {
 //            std::cout << "number_of_reactants:" << number_of_reactants<<" "<<i << std::endl;
-
-            reactant_fragment_indices_list[i][0] = i;
-            reactant_fragment_indices_list[i][1] = -1;
-            reactant_fragment_indices_list_len++;
+            reactant_fragment_indices_list.push_back(make_pair(i, -1));
+//            reactant_fragment_indices_list[i][0] = i;
+//            reactant_fragment_indices_list[i][1] = -1;
+//            reactant_fragment_indices_list_len++;
         }
 //        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
     }
@@ -110,10 +110,10 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
                 if ((reactant0_mol->fragment_data[i].number_of_bonds_broken +
                         reactant1_mol->fragment_data[j].number_of_bonds_broken) <= 1) {
 //                    std::cout << "number_of_reactants:" << number_of_reactants<<" "<<i<<j << std::endl;
-
-                    reactant_fragment_indices_list[reactant_fragment_indices_list_len][0]=i;
-                    reactant_fragment_indices_list[reactant_fragment_indices_list_len][1]=j;
-                    reactant_fragment_indices_list_len++;
+                    reactant_fragment_indices_list.push_back(make_pair(i, j));
+//                    reactant_fragment_indices_list[reactant_fragment_indices_list_len][0]=i;
+//                    reactant_fragment_indices_list[reactant_fragment_indices_list_len][1]=j;
+//                    reactant_fragment_indices_list_len++;
                 }
             }
         }
@@ -122,9 +122,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
     if (number_of_products == 1) {
         for (int i = 0; i < product0_mol->number_of_fragment_data; i++) {
 //            std::cout << "number_of_products:" << number_of_products<<" "<<i << std::endl;
-            product_fragment_indices_list[i][0] = i;
-            product_fragment_indices_list[i][1] = -1;
-            product_fragment_indices_list_len++;
+            product_fragment_indices_list.push_back(make_pair(i, -1));
         }
     }
     else if (number_of_products == 2) {
@@ -132,17 +130,14 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             for (int j = 0; j < product1_mol->number_of_fragment_data; j++) {
                 if ((product0_mol->fragment_data[i].number_of_bonds_broken +
                         product1_mol->fragment_data[j].number_of_bonds_broken) <= 1) {
-//                    std::cout << "number_of_products:" << number_of_products<<" "<<i<<j << std::endl;
-                    product_fragment_indices_list[product_fragment_indices_list_len][0]=i;
-                    product_fragment_indices_list[product_fragment_indices_list_len][1]=j;
-                    product_fragment_indices_list_len++;
+                    product_fragment_indices_list.push_back(make_pair(i, j));
                 }
             }
         }
     }
 
-    for (int tmp_reactant_fragment_idx = 0; tmp_reactant_fragment_idx < reactant_fragment_indices_list_len; tmp_reactant_fragment_idx++){
-        for (int tmp_product_fragment_idx = 0; tmp_product_fragment_idx < product_fragment_indices_list_len; tmp_product_fragment_idx++) {
+    for (int tmp_reactant_fragment_idx = 0; tmp_reactant_fragment_idx < reactant_fragment_indices_list.size(); tmp_reactant_fragment_idx++){
+        for (int tmp_product_fragment_idx = 0; tmp_product_fragment_idx < product_fragment_indices_list.size(); tmp_product_fragment_idx++) {
             int reactant_fragment_count = 0;
             int product_fragment_count = 0;
             int  reactant_bonds_broken[MAX_LIST_SIZE][2][2];
@@ -152,7 +147,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             std::unordered_map< char*, int, CharPtrHash, CharPtrEqual>  reactant_hashes;
             std::unordered_map< char*, int, CharPtrHash, CharPtrEqual>  product_hashes;
 
-            int product_fragment_indices[2]={product_fragment_indices_list[tmp_product_fragment_idx][0],product_fragment_indices_list[tmp_product_fragment_idx][1]};
+            int product_fragment_indices[2]={product_fragment_indices_list[tmp_product_fragment_idx].first,product_fragment_indices_list[tmp_product_fragment_idx].second};
             for (int product_index = 0; product_index < 2; product_index++) {
 
                 int frag_complex_index = product_fragment_indices[product_index];
@@ -192,7 +187,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             }
 
 
-            int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx][0],reactant_fragment_indices_list[tmp_reactant_fragment_idx][1]};
+            int reactant_fragment_indices[2]={reactant_fragment_indices_list[tmp_reactant_fragment_idx].first,reactant_fragment_indices_list[tmp_reactant_fragment_idx].second};
             for (int reactant_index = 0; reactant_index < 2; reactant_index++) {
                 int frag_complex_index = reactant_fragment_indices[reactant_index];
 
