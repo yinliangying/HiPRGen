@@ -59,7 +59,9 @@ def get_rn_db(pickle_path: str,network_folder: str):
     for i in range(len(mol_entries)):
         mol_entry_ctype = create_molecule_entry(mol_entries, i)
         mol_entries[i].mol_entry_ctype = mol_entry_ctype
-
+    print("保存mol_entries")
+    with open(pickle_path, 'wb') as f:
+        pickle.dump(mol_entries, f)
 
     bucket(mol_entries, f'{network_folder}/buckets.sqlite')
     params = {
