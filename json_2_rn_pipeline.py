@@ -54,14 +54,6 @@ def get_rn_db(pickle_path: str,network_folder: str):
     with open(pickle_path, 'rb') as file:
         mol_entries = pickle.load(file)
 
-    print("预加载cpp交互数据")
-    from HiPRGen.fragment_matching_found_cpp import create_molecule_entry
-    for i in range(len(mol_entries)):
-        mol_entry_ctype = create_molecule_entry(mol_entries, i)
-        mol_entries[i].mol_entry_ctype = mol_entry_ctype
-    print("保存mol_entries")
-    with open(pickle_path, 'wb') as f:
-        pickle.dump(mol_entries, f)
 
     bucket(mol_entries, f'{network_folder}/buckets.sqlite')
     params = {
@@ -126,12 +118,6 @@ def unit_rn_db(united_network_folder, new_lib_json_path, new_network_folder, old
     print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
     os.system("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
     print("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
-
-    print("预加载cpp交互数据")
-    from HiPRGen.fragment_matching_found_cpp import create_molecule_entry
-    for i in range(len(united_mol_entries)):
-        mol_entry_ctype = create_molecule_entry(united_mol_entries, i)
-        united_mol_entries[i].mol_entry_ctype = mol_entry_ctype
 
     print("保存mol_entries")
     with open(f"{united_network_folder}/mol_entries.pickle", 'wb') as f:

@@ -269,6 +269,12 @@ def worker(
         mol_entries,
         worker_payload
 ):
+    print("预加载cpp交互数据")
+    from HiPRGen.fragment_matching_found_cpp import create_molecule_entry
+    for i in range(len(mol_entries)):
+        mol_entry_ctype = create_molecule_entry(mol_entries, i)
+        mol_entries[i].mol_entry_ctype = mol_entry_ctype
+
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
