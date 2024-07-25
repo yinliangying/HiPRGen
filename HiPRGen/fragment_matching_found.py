@@ -257,11 +257,12 @@ def main():
             number_of_fragments = fragment_complex.number_of_fragments
             max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
     print("max_list_size:",max_list_size)
-    os.system(r"sed -i '1s/^/const int MAX_LIST_SIZE = %s;\n/' fragment_matching_found.cpp "%max_list_size)
+    os.system(r"cp fragment_matching_found.cpp fragment_matching_found2.cpp")
+    os.system(r"sed -i '1s/^/const int MAX_LIST_SIZE = %s;\n/' fragment_matching_found2.cpp "%max_list_size)
     os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
     print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK" )
-    os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
-    print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC fragment_matching_found2.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
     lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
     #定义函数参数类型和返回值类型
     lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
