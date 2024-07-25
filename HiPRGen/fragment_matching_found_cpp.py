@@ -65,35 +65,28 @@ def create_molecule_entry(mol_entries,reactant_id):
 
     mol_entry = mol_entries[reactant_id]
 
-    # max_list_size = len(mol_entry.fragment_data)
-    # for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
-    #     number_of_bonds_broken = fragment_complex.number_of_bonds_broken
-    #     number_of_fragments = fragment_complex.number_of_fragments
-    #     max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
-    # if max_list_size>MAX_LIST_SIZE:
-    #     print(f"mol_id:{reactant_id},max_list_size:{max_list_size} skip")
-    #     return None
+    number_of_fragment_data=len(mol_entry.fragment_data)
 
-    number_of_fragment_data=0
+    molecule_entry_ctype.fragment_data = (FragmentComplex_c_type * number_of_fragment_data)()
     for f_idx,fragment_complex in enumerate(mol_entry.fragment_data):
         number_of_bonds_broken = fragment_complex.number_of_bonds_broken
         bonds_broken = fragment_complex.bonds_broken
         fragment_hashes = fragment_complex.fragment_hashes
         number_of_fragments = fragment_complex.number_of_fragments
 
-        fragment_complex_ctype=molecule_entry_ctype.fragment_data[f_idx]
-        fragment_complex_ctype.number_of_bonds_broken = number_of_bonds_broken
-        fragment_complex_ctype.number_of_fragments = number_of_fragments
+        molecule_entry_ctype.fragment_data[f_idx].number_of_bonds_broken = number_of_bonds_broken
+        molecule_entry_ctype.fragment_data[f_idx].number_of_fragments = number_of_fragments
 
+
+        molecule_entry_ctype.fragment_data[f_idx].bonds_broken = (c_int*2*number_of_bonds_broken)()
         for i, bond in enumerate(bonds_broken):
-            fragment_complex_ctype.bonds_broken[i][0] = bond[0]
-            fragment_complex_ctype.bonds_broken[i][1] = bond[1]
+            molecule_entry_ctype.fragment_data[f_idx].bonds_broken[i][0] = bond[0]
+            molecule_entry_ctype.fragment_data[f_idx].bonds_broken[i][1] = bond[1]
 
+        molecule_entry_ctype.fragment_data[f_idx].fragment_hashes = (c_char_p*number_of_fragments)()
         for i, s in enumerate(fragment_hashes):
-            fragment_complex_ctype.fragment_hashes[i] = s.encode('utf-8')
+            molecule_entry_ctype.fragment_data[f_idx].fragment_hashes[i] = s.encode('utf-8')
 
-        molecule_entry_ctype.fragment_data[f_idx]= fragment_complex_ctype
-        number_of_fragment_data+=1
 
     molecule_entry_ctype.number_of_fragment_data = number_of_fragment_data
 
