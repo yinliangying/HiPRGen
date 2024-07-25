@@ -9,6 +9,8 @@ from HiPRGen.constants import Terminal, ROOM_TEMP, KB, PLANCK, m_formulas
 from monty.json import MSONable
 import traceback
 from functools import wraps
+from HiPRGen.fragment_matching_found_cpp import cpp_function
+import HiPRGen.fragment_matching_found_cpp
 
 def timer(func):
     func.call_times = 0
@@ -478,7 +480,12 @@ class fragment_matching_found(MSONable):
         return "fragment matching found"
     @timer
     def __call__(self, reaction, mols, params):
-
+        # 只返回是否通过，不返回其他信息了，因为这个函数通过率非常低，如果返回true让python计算其他结果就可以
+        cpp_res,cpp_spend=cpp_function( reaction, mols,HiPRGen.fragment_matching_found_cpp.lib)
+        if  not cpp_res:#
+            return False
+        else:
+            pass
         reactant_fragment_indices_list = []
         product_fragment_indices_list = []
 
@@ -582,7 +589,7 @@ class fragment_matching_found(MSONable):
                     reaction["fragment_matching_found"]= True
 
                     return True
-        reaction["fragment_matching_found"] = False
+        # reaction["fragment_matching_found"] = False
         return False
 
 
