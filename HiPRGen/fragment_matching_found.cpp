@@ -17,7 +17,7 @@
 //
 //}
 
-// g++ -shared -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so
+// g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so
 
 #include <cstring> // For strcpy()
 #include <string>
@@ -237,6 +237,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 
             if (isEqual) {
                 result.r = true;
+                return result;  // 只返回是否通过，不返回其他信息了，因为这个函数通过率非常低，如果返回true让python计算其他结果就可以
                 result.reactant_fragment_count = reactant_fragment_count;
                 result.product_fragment_count = product_fragment_count;
                 result.num_reactant_bonds_broken = reactant_bonds_broken_len;

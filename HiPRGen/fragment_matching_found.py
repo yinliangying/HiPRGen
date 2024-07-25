@@ -1,5 +1,6 @@
 
 import ctypes
+import os
 import pickle
 from ctypes import Structure, c_int, POINTER,c_char,c_char_p,c_bool
 from HiPRGen.mol_entry import MoleculeEntry
@@ -88,10 +89,10 @@ def cpp_function( reaction, mol_entries,lib):
     product0_id=reaction['products'][0]
     product1_id=reaction['products'][1]
 
-    reactant0_mol_entry_ctype=create_molecule_entry(mol_entries,reactant0_id)
-    reactant1_mol_entry_ctype=create_molecule_entry(mol_entries,reactant1_id)
-    product0_mol_entry_ctype=create_molecule_entry(mol_entries,product0_id)
-    product1_mol_entry_ctype=create_molecule_entry(mol_entries,product1_id)
+    reactant0_mol_entry_ctype=mol_entries[reactant0_id].mol_entry_ctype
+    reactant1_mol_entry_ctype=mol_entries[reactant1_id].mol_entry_ctype
+    product0_mol_entry_ctype=mol_entries[product0_id].mol_entry_ctype
+    product1_mol_entry_ctype=mol_entries[product1_id].mol_entry_ctype
 
     if reactant0_mol_entry_ctype is None:
         print(f"skip:mol_id:{reactant0_id}")
@@ -245,6 +246,8 @@ def ori_function( reaction, mols):
         return False
 
 def main():
+    os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
     lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
     #定义函数参数类型和返回值类型
     lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
@@ -268,7 +271,17 @@ def main():
             max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
     print("max_list_size:",max_list_size)
 
+    for i in range(len(mol_entries)):
+        mol_entry_ctype=create_molecule_entry(mol_entries,i)
+        if mol_entry_ctype is None:
+            print(f"max_list_size skip:mol_id:{i}")
+            mol_entries[i].mol_entry_ctype=None
+            continue
+        mol_entries[i].mol_entry_ctype=mol_entry_ctype
 
+    ij_times=0
+    total_py_spend=0
+    total_cpp_spend=0
     for i in range(len(mol_entries)):
         for j in range(len(mol_entries)):
             reactant0_id=i #1
@@ -295,18 +308,21 @@ def main():
             t_time=time()
             py_res=ori_function(copy.deepcopy(reaction),mol_entries)
             py_spend=time()-t_time
-
+            total_py_spend+=py_spend
             t_time=time()
             cpp_res,cpp_spend=cpp_function(reaction,mol_entries,lib)
             cpp_all_spend=time()-t_time
+            total_cpp_spend+=cpp_spend
             if cpp_res==py_res:
                 print(f"{cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} {cpp_all_spend}")
-            # print(f"[reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]}")
-            # print(f"[product0_id,product1_id]:{[product0_id, product1_id]}")
             if cpp_res!=py_res:
                 print(f"{py_res} {cpp_res} py_spend:{py_spend},cpp_spend:{cpp_spend} {cpp_all_spend} [reactant0_id,reactant1_id]:{[reactant0_id, reactant1_id]} [product0_id,product1_id]:{[product0_id, product1_id]}")
-            #print("*" * 100)
-            #exit()
+
+            if ij_times % 1000 == 0:
+                print(f"total_py_spend:{total_py_spend},total_cpp_spend:{total_cpp_spend}")
+            if ij_times == 1000:
+                exit()
+            ij_times += 1
 
 if __name__ == '__main__':
     main()
