@@ -1,3 +1,5 @@
+
+//const int MAX_LIST_SIZE = 29; 由python传入并编译
 // python 调用方式
 //number_of_reactants=1,
 //number_of_products=2
@@ -25,7 +27,7 @@
 #include <unordered_map>
 #include <vector>
 #include <chrono>
-const int MAX_LIST_SIZE = 29;
+
 using namespace std;
 typedef struct {
     int number_of_bonds_broken;

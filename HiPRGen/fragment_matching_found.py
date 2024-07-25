@@ -246,8 +246,22 @@ def ori_function( reaction, mols):
         return False
 
 def main():
+    with open("old_lib/mol_entries.pickle", 'rb') as f:
+        mol_entries = pickle.load(f)
+    max_list_size = 0
+    for i in range(len(mol_entries)):
+        mol_entry = mol_entries[i]
+        max_list_size = max(max_list_size, len(mol_entry.fragment_data))
+        for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
+            number_of_bonds_broken = fragment_complex.number_of_bonds_broken
+            number_of_fragments = fragment_complex.number_of_fragments
+            max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
+    print("max_list_size:",max_list_size)
+    os.system(f"sed -i '1s/^/const int MAX_LIST_SIZE = {max_list_size};\n/' fragment_matching_found.cpp ")
     os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK" )
     os.system("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
     lib = ctypes.cdll.LoadLibrary("/root/HiPRGen/HiPRGen/fragment_matching_found.so")
     #定义函数参数类型和返回值类型
     lib.fragment_matching_found.argtypes = [ctypes.c_int, ctypes.c_int,
@@ -258,18 +272,7 @@ def main():
     lib.fragment_matching_found.restype = Return_c_type
 
 
-    with open("old_lib/mol_entries.pickle", 'rb') as f:
-        mol_entries = pickle.load(f)
 
-    max_list_size = 0
-    for i in range(len(mol_entries)):
-        mol_entry = mol_entries[i]
-        max_list_size = max(max_list_size, len(mol_entry.fragment_data))
-        for f_idx, fragment_complex in enumerate(mol_entry.fragment_data):
-            number_of_bonds_broken = fragment_complex.number_of_bonds_broken
-            number_of_fragments = fragment_complex.number_of_fragments
-            max_list_size = max(max_list_size, number_of_bonds_broken, number_of_fragments)
-    print("max_list_size:",max_list_size)
 
     for i in range(len(mol_entries)):
         mol_entry_ctype=create_molecule_entry(mol_entries,i)
@@ -284,10 +287,10 @@ def main():
     total_cpp_spend=0
     for i in range(len(mol_entries)):
         for j in range(len(mol_entries)):
-            reactant0_id=i #1
-            reactant1_id=-1 #2
-            product0_id=j  #1
-            product1_id=-1 #1
+            reactant0_id=j #1
+            reactant1_id=j #2
+            product0_id=i #1
+            product1_id=i #1
 
             if reactant1_id==-1:
                 number_of_reactants=1
