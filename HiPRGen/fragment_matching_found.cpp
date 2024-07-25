@@ -87,8 +87,8 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 
 //    std::vector<std::vector<int>> reactant_fragment_indices_list;
 //    std::vector<std::vector<int>> product_fragment_indices_list;
-    int reactant_fragment_indices_list[MAX_LIST_SIZE][2];
-    int product_fragment_indices_list[MAX_LIST_SIZE][2];
+    int reactant_fragment_indices_list[MAX_LIST_SIZE][2]; //todo:这个数组会越界
+    int product_fragment_indices_list[MAX_LIST_SIZE][2];//todo:这个数组会越界
     int reactant_fragment_indices_list_len=0;
     int product_fragment_indices_list_len=0;
     Return result;
@@ -104,9 +104,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
         }
 //        std::cout << "number_of_reactants:" << number_of_reactants<<" "<<reactant_fragment_indices_list.size() << std::endl;
     }
-
-
-    if (number_of_reactants == 2) {
+    else if (number_of_reactants == 2) {
         for (int i = 0; i < reactant0_mol->number_of_fragment_data; i++) {
             for (int j = 0; j < reactant1_mol->number_of_fragment_data; j++) {
                 if ((reactant0_mol->fragment_data[i].number_of_bonds_broken +
@@ -129,8 +127,7 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
             product_fragment_indices_list_len++;
         }
     }
-
-    if (number_of_products == 2) {
+    else if (number_of_products == 2) {
         for (int i = 0; i < product0_mol->number_of_fragment_data; i++) {
             for (int j = 0; j < product1_mol->number_of_fragment_data; j++) {
                 if ((product0_mol->fragment_data[i].number_of_bonds_broken +
