@@ -158,7 +158,7 @@ def unit_rn_db(output_network_folder, new_lib_json_path, new_network_folder, old
             '-n',
             number_of_threads,
             'python',
-            'run_network_generation.py',
+            '/root/HiPRGen/run_network_generation.py',
             f"{output_network_folder}/mol_entries.pickle",
             f'{output_network_folder}/dispatcher_payload.json',
             f'{output_network_folder}/worker_payload.json'
