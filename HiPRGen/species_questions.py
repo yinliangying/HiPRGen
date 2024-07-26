@@ -303,8 +303,12 @@ class fix_hydrogen_bonding(MSONable):
 
                             adjacent_atoms.append((adjacent_atom, dist))
 
+                    try:
+                        closest_atom, _ = min(adjacent_atoms, key=lambda pair: pair[1])
+                    except:
+                        print(mol.species)
+                        continue
 
-                    closest_atom, _ = min(adjacent_atoms, key=lambda pair: pair[1])
 
                     for adjacent_atom, _ in adjacent_atoms:
                         if adjacent_atom != closest_atom:
@@ -464,7 +468,7 @@ li_species_decision_tree = [
     ]
 
 no_species_decision_tree = [
-    (fix_hydrogen_bonding(), Terminal.KEEP),
+    # (fix_hydrogen_bonding(), Terminal.KEEP),
     (set_solvation_free_energy(li_ec), Terminal.KEEP),
     # (charge_too_big(), Terminal.DISCARD),
     # (neutral_metal_filter(0.1), Terminal.DISCARD),
