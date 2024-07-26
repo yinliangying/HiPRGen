@@ -292,8 +292,8 @@ def worker(
     while True:
         if rank == 1:
             batch_times += 1
-            print(
-                f"total_time:{total_time} comm_time:{comm_time}  sql_time:{sql_time}  filter_time:{filter_time}   batch_times:{batch_times}   ")
+            # print(
+            #     f"total_time:{total_time} comm_time:{comm_time}  sql_time:{sql_time}  filter_time:{filter_time}   batch_times:{batch_times}   ")
 
         s_time=time()
 
