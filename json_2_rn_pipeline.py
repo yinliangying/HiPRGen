@@ -82,7 +82,7 @@ def get_rn_db(pickle_path: str, output_network_folder: str):
             '-n',
             number_of_threads,
             'python',
-            'run_network_generation.py',
+            '/root/HiPRGen/run_network_generation.py',
             pickle_path,
             f'{output_network_folder}/dispatcher_payload.json',
             f'{output_network_folder}/worker_payload.json'
