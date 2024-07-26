@@ -113,11 +113,12 @@ def dispatcher(
     bucket_cur = bucket_con.cursor()
     size_cur = bucket_con.cursor()
 
+    #整体bucket的结构是 bucket的id是composition_id,原理上桶内所有元素要两两组合，但考虑计算效率进行分组，count是桶内分组数
     res = bucket_cur.execute("SELECT * FROM group_counts")
     for (composition_id, count) in res:
-        for (i,j) in product(range(count), repeat=2):
+        for (i,j) in product(range(count), repeat=2): #桶内分组两两组合
             work_batch_list.append(
-                (composition_id, i, j))#这个groupid i j 是如果bucket内物种数量过多就要分成多个组
+                (composition_id, i, j))
 
     composition_names = {}
     res = bucket_cur.execute("SELECT * FROM compositions")

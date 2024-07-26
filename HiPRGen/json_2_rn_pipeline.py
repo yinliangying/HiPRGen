@@ -1,5 +1,6 @@
 import os
-
+import sqlite3
+import shutil
 from HiPRGen.species_filter import species_filter
 from HiPRGen.species_questions import (
     li_species_decision_tree,
@@ -19,85 +20,172 @@ from HiPRGen.constants import ROOM_TEMP, Terminal
 import subprocess
 from HiPRGen.reaction_questions import default_reaction_decision_tree
 
-# def apply_species_filter(pickle_path: str):
-#     database_entries = loadfn(pickle_path)
-#     # print(database_entries[0])
-#     # a = database_entries[0]
-#     # print(a.molecule.properties)
-#
-#     mol_entries = species_filter(
-#         database_entries,
-#         mol_entries_pickle_location='mol_entries.pickle',
-#         species_report='unfiltered_species_report.tex',
-#         species_decision_tree=li_species_decision_tree,
-#         coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
-#         generate_unfiltered_mol_pictures=False
-#     )
-#
-# apply_species_filter(r'dump.pickle')
 
 
-def apply_species_filter(json_path: str):
+
+def apply_species_filter(json_path: str, output_network_folder: str):
     with open(json_path, 'r') as f:
         database_entries = json.load(fp=f)
 
     mol_entries = species_filter(
         database_entries,
-        mol_entries_pickle_location='mol_entries.pickle',
-        species_report='unfiltered_species_report.tex',
+        mol_entries_pickle_location=f'{output_network_folder}/mol_entries.pickle',
+        species_report=f'{output_network_folder}/unfiltered_species_report.tex',
         species_decision_tree=no_species_decision_tree,
         coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
-        generate_unfiltered_mol_pictures=True
+        generate_unfiltered_mol_pictures=False
     )
+    return mol_entries
 
 
-def get_rn_db(pickle_path: str):
-    for a_file in os.listdir('./'):
-        if a_file.endswith('sqlite'):
-            os.remove(a_file)
+def get_rn_db(pickle_path: str, output_network_folder: str):
+    print("删除旧文件")
+    if os.path.exists(f'{output_network_folder}/rn.sqlite'):
+        os.remove(f'{output_network_folder}/rn.sqlite')
+    if os.path.exists(f'{output_network_folder}/buckets.sqlite'):
+        os.remove(f'{output_network_folder}/buckets.sqlite')
+
+    # 编译cpp
+    os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
 
     with open(pickle_path, 'rb') as file:
         mol_entries = pickle.load(file)
-    # mol_entries = loadfn(pickle_path)
-    bucket(mol_entries, 'buckets.sqlite')
+
+
+    bucket(mol_entries, f'{output_network_folder}/buckets.sqlite')
     params = {
         'temperature': ROOM_TEMP,
         'electron_free_energy': -1.4
     }
-
     dispatcher_payload = DispatcherPayload(
-        'buckets.sqlite',
-        'rn.sqlite',
-        'reaction_report.tex'
+        f'{output_network_folder}/buckets.sqlite',
+        f'{output_network_folder}/rn.sqlite',
+        f'{output_network_folder}/reaction_report.tex'
     )
-
     worker_payload = WorkerPayload(
-        'buckets.sqlite',
+        f'{output_network_folder}/buckets.sqlite',
         default_reaction_decision_tree,
         params,
         Terminal.DISCARD
     )
-
-    dumpfn(dispatcher_payload, 'dispatcher_payload.json')
-    dumpfn(worker_payload, 'worker_payload.json')
+    dumpfn(dispatcher_payload, f'{output_network_folder}/dispatcher_payload.json')
+    dumpfn(worker_payload, f'{output_network_folder}/worker_payload.json')
+    number_of_threads = os.popen("nproc").read().strip()
+    print(f"number_of_threads:{number_of_threads}")
     subprocess.run(
         [
             'mpirun',
             '--use-hwthread-cpus',
             '-n',
-            str(64),
+            number_of_threads,
             'python',
             'run_network_generation.py',
-            'mol_entries.pickle',
-            'dispatcher_payload.json',
-            'worker_payload.json'
+            pickle_path,
+            f'{output_network_folder}/dispatcher_payload.json',
+            f'{output_network_folder}/worker_payload.json'
         ]
     )
 
+def unit_rn_db(output_network_folder, new_lib_json_path, new_network_folder, old_network_folder):
+    print("删除旧文件")
+    if os.path.exists(f"{output_network_folder}/buckets.sqlite"):
+        os.remove(f"{output_network_folder}/buckets.sqlite")
+    if os.path.exists(f"{output_network_folder}/rn.sqlite"):
+        os.remove(f"{output_network_folder}/rn.sqlite")
+    if os.path.exists(f"{output_network_folder}/mol_entries.pickle"):
+        os.remove(f"{output_network_folder}/mol_entries.pickle")
 
-apply_species_filter(r'real_dump.json')
-get_rn_db('mol_entries.pickle')
+    print("合并old new mol_entries")
+    new_mol_entries=apply_species_filter(new_lib_json_path, new_network_folder)
+    with open(f"{old_network_folder}/mol_entries.pickle", 'rb') as file:
+        old_mol_entries = pickle.load(file)
+    united_mol_entries=[]
+    for mol in old_mol_entries:
+        mol.source="old"
+        united_mol_entries.append(mol)
+    for mol in new_mol_entries:
+        mol.source="new"
+        mol.ind=len(united_mol_entries)
+        united_mol_entries.append(mol)
+    if not os.path.exists(output_network_folder):
+        os.mkdir(output_network_folder)
 
+    #编译cpp
+    os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+    os.system("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so")
+    print("g++ -shared  -O3  -fPIC /root/HiPRGen/HiPRGen/fragment_matching_found.cpp -o /root/HiPRGen/HiPRGen/fragment_matching_found.so OK")
+
+    print("保存mol_entries")
+    with open(f"{output_network_folder}/mol_entries.pickle", 'wb') as f:
+        pickle.dump(united_mol_entries, f)
+
+    print("在old 基础上建立united rn")
+    shutil.copy(f"{old_network_folder}/rn.sqlite", f"{output_network_folder}/rn.sqlite")
+    rn_con = sqlite3.connect(  f"{output_network_folder}/rn.sqlite")
+    rn_cur = rn_con.cursor()
+    rn_cur.execute("DROP TABLE IF EXISTS metadata;")
+    rn_con.commit()
+
+
+    bucket(united_mol_entries, f'{output_network_folder}/buckets.sqlite')
+    params = {
+        'temperature': ROOM_TEMP,
+        'electron_free_energy': -1.4
+    }
+    dispatcher_payload = DispatcherPayload(
+        f'{output_network_folder}/buckets.sqlite',
+        f'{output_network_folder}/rn.sqlite',
+        f'{output_network_folder}/reaction_report.tex'
+    )
+    worker_payload = WorkerPayload(
+        f'{output_network_folder}/buckets.sqlite',
+        default_reaction_decision_tree,
+        params,
+        Terminal.DISCARD
+    )
+    dumpfn(dispatcher_payload, f'{output_network_folder}/dispatcher_payload.json')
+    dumpfn(worker_payload, f'{output_network_folder}/worker_payload.json')
+    number_of_threads = os.popen("nproc").read().strip()
+    print(f"number_of_threads:{number_of_threads}")
+    subprocess.run(
+        [
+            'mpirun',
+            '--use-hwthread-cpus',
+            '-n',
+            number_of_threads,
+            'python',
+            'run_network_generation.py',
+            f"{output_network_folder}/mol_entries.pickle",
+            f'{output_network_folder}/dispatcher_payload.json',
+            f'{output_network_folder}/worker_payload.json'
+        ]
+    )
+
+if __name__ == '__main__':
+    # test shell
+    # python /root/HiPRGen/json_2_rn_pipeline.py  -m ab_initio -j /root/test_fmol_unfilter/new_lib/real_dump.json -o /root/test_fmol_unfilter/new_lib
+    # python /root/HiPRGen/json_2_rn_pipeline.py   -m append -j /root/test_fmol_unfilter/new_lib/real_dump.json -o /root/test_fmol_unfilter/united_lib -n /root/test_fmol_unfilter/old_lib
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--mode", help="Mode must be ab_initio or append", type=str, choices=['ab_initio', 'append'], required=True)
+    parser.add_argument("-j", "--json_path", help="Path to json file to be calculated", type=str, required=True)
+    parser.add_argument("-o", "--output_network_folder", help="Path to output network folder", type=str, required=True)
+    parser.add_argument("-n", "--old_network_folder", help="Only for append mode", type=str, required=False)
+
+    args = parser.parse_args()
+
+    print(f"Selected mode: {args.mode}")
+    if args.mode == 'ab_initio':
+        apply_species_filter(args.json_path, args.output_network_folder)
+        get_rn_db(f"{args.output_network_folder}/mol_entries.pickle", args.output_network_folder)
+
+    if args.mode == 'append':
+        new_network_folder= "new_lib"
+        unit_rn_db(args.output_network_folder, args.json_path, new_network_folder, args.old_network_folder)
 
 
 

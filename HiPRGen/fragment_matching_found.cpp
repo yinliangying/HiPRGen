@@ -109,7 +109,6 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
 
     if (number_of_products == 1) {
         for (int i = 0; i < product0_mol->number_of_fragment_data; i++) {
-//            std::cout << "number_of_products:" << number_of_products<<" "<<i << std::endl;
             product_fragment_indices_list.push_back(make_pair(i, -1));
         }
     }
@@ -264,7 +263,5 @@ extern "C" Return fragment_matching_found(int number_of_reactants, int number_of
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     duration = duration;
-//    std::cout << "Execution time: " << duration << " s" << std::endl;
-
     return result;
 }
