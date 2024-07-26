@@ -167,8 +167,9 @@ def unit_rn_db(output_network_folder, new_lib_json_path, new_network_folder, old
 
 if __name__ == '__main__':
     # test shell
-    # python /root/HiPRGen/json_2_rn_pipeline.py  -m ab_initio -j /root/test_fmol_unfilter/new_lib/real_dump.json -o /root/test_fmol_unfilter/new_lib
-    # python /root/HiPRGen/json_2_rn_pipeline.py   -m append -j /root/test_fmol_unfilter/new_lib/real_dump.json -o /root/test_fmol_unfilter/united_lib -n /root/test_fmol_unfilter/old_lib
+    # cd /personal/Bohrium_task_hiprgen/hiprgen_json2rn_input
+    # python /root/HiPRGen/json_2_rn_pipeline.py  -m ab_initio -j new_lib/real_dump.json -o new_lib
+    # python /root/HiPRGen/json_2_rn_pipeline.py   -m append -j new_lib/real_dump.json -o united_lib -n old_lib
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", help="Mode must be ab_initio or append", type=str, choices=['ab_initio', 'append'], required=True)
