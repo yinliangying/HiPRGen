@@ -13,14 +13,17 @@ class DispatcherPayload(MSONable):
             bucket_db_file,
             reaction_network_db_file,
             report_file,
-            commit_frequency = 1000,
-            checkpoint_interval = 10):
+            commit_frequency = 10000,
+            checkpoint_interval = 10,
+            machine_num=None,machine_id=None):
 
         self.bucket_db_file = bucket_db_file
         self.reaction_network_db_file = reaction_network_db_file
         self.report_file = report_file
         self.commit_frequency = commit_frequency
         self.checkpoint_interval = checkpoint_interval
+        self.machine_num = machine_num
+        self.machine_id = machine_id
 
 
 class WorkerPayload(MSONable):

@@ -115,10 +115,19 @@ def dispatcher(
 
     #整体bucket的结构是 bucket的id是composition_id,原理上桶内所有元素要两两组合，但考虑计算效率进行分组，count是桶内分组数
     res = bucket_cur.execute("SELECT * FROM group_counts")
+    tmp_i=0
+
+
     for (composition_id, count) in res:
         for (i,j) in product(range(count), repeat=2): #桶内分组两两组合
-            work_batch_list.append(
-                (composition_id, i, j))
+            if dispatcher_payload.machine_id and dispatcher_payload.machine_num:
+                if tmp_i%dispatcher_payload.machine_num==dispatcher_payload.machine_id:
+                    work_batch_list.append(
+                        (composition_id, i, j))
+            else:
+                work_batch_list.append(
+                    (composition_id, i, j))
+            tmp_i+=1
 
     composition_names = {}
     res = bucket_cur.execute("SELECT * FROM compositions")

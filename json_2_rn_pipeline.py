@@ -38,12 +38,12 @@ def apply_species_filter(json_path: str, output_network_folder: str):
     return mol_entries
 
 
-def get_rn_db(pickle_path: str, output_network_folder: str):
-    print("删除旧文件")
+def get_rn_db(pickle_path: str, output_network_folder: str,machine_num: int,machine_id:int):
+    print("删除旧rn.sqlite文件")
     if os.path.exists(f'{output_network_folder}/rn.sqlite'):
         os.remove(f'{output_network_folder}/rn.sqlite')
-    if os.path.exists(f'{output_network_folder}/buckets.sqlite'):
-        os.remove(f'{output_network_folder}/buckets.sqlite')
+    # if os.path.exists(f'{output_network_folder}/buckets.sqlite'):
+    #     os.remove(f'{output_network_folder}/buckets.sqlite')
 
     # 编译cpp
     os.system("rm /root/HiPRGen/HiPRGen/fragment_matching_found.so")
@@ -54,8 +54,8 @@ def get_rn_db(pickle_path: str, output_network_folder: str):
     with open(pickle_path, 'rb') as file:
         mol_entries = pickle.load(file)
 
-
-    bucket(mol_entries, f'{output_network_folder}/buckets.sqlite')
+    if not os.path.exists(f'{output_network_folder}/buckets.sqlite'):
+        bucket(mol_entries, f'{output_network_folder}/buckets.sqlite')
     params = {
         'temperature': ROOM_TEMP,
         'electron_free_energy': -1.4
@@ -63,7 +63,9 @@ def get_rn_db(pickle_path: str, output_network_folder: str):
     dispatcher_payload = DispatcherPayload(
         f'{output_network_folder}/buckets.sqlite',
         f'{output_network_folder}/rn.sqlite',
-        f'{output_network_folder}/reaction_report.tex'
+        f'{output_network_folder}/reaction_report.tex',
+        machine_num=machine_num,machine_id=machine_id,
+
     )
     worker_payload = WorkerPayload(
         f'{output_network_folder}/buckets.sqlite',
@@ -176,13 +178,39 @@ if __name__ == '__main__':
     parser.add_argument("-j", "--json_path", help="Path to json file to be calculated", type=str, required=True)
     parser.add_argument("-o", "--output_network_folder", help="Path to output network folder", type=str, required=True)
     parser.add_argument("-n", "--old_network_folder", help="Only for append mode", type=str, required=False)
+    parser.add_argument("-a", "--machine_num", help="", type=str, required=False,default="None")
+    parser.add_argument("-i", "--machine_id", help="", type=str, required=False,default="None")
 
     args = parser.parse_args()
+    if args.machine_num=="None":
+        args.machine_num=None
+    else:
+        args.machine_num=int(args.machine_num)
+
+    if args.machine_id=="None":
+        args.machine_id=None
+    else:
+        args.machine_id=int(args.machine_id)
+    if args.machine_id==None and args.machine_num!=None:
+        print("machine_id must be provided if machine_num is provided")
+        exit()
+    if args.machine_id!=None and args.machine_num==None:
+        print("machine_num must be provided if machine_id is provided")
+        exit()
+    if args.machine_id>=args.machine_num:
+        print("machine_id must be smaller than machine_num")
+        exit()
+    if args.machine_id<0 or args.machine_num<=0:
+        print("machine_id and machine_num must be positive")
+        exit()
+
+
 
     print(f"Selected mode: {args.mode}")
     if args.mode == 'ab_initio':
         apply_species_filter(args.json_path, args.output_network_folder)
-        get_rn_db(f"{args.output_network_folder}/mol_entries.pickle", args.output_network_folder)
+        get_rn_db(f"{args.output_network_folder}/mol_entries.pickle", args.output_network_folder,
+                  args.machine_num,args.machine_id)
 
     if args.mode == 'append':
         new_network_folder= "new_lib"
