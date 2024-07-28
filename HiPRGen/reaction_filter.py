@@ -120,7 +120,7 @@ def dispatcher(
 
     for (composition_id, count) in res:
         for (i,j) in product(range(count), repeat=2): #桶内分组两两组合
-            if dispatcher_payload.machine_id and dispatcher_payload.machine_num:
+            if (dispatcher_payload.machine_id is not None)   and (dispatcher_payload.machine_num is not  None):
                 if tmp_i%dispatcher_payload.machine_num==dispatcher_payload.machine_id:
                     work_batch_list.append(
                         (composition_id, i, j))
