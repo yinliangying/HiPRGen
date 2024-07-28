@@ -26,15 +26,18 @@ from HiPRGen.reaction_questions import default_reaction_decision_tree
 def apply_species_filter(json_path: str, output_network_folder: str):
     with open(json_path, 'r') as f:
         database_entries = json.load(fp=f)
-
-    mol_entries = species_filter(
-        database_entries,
-        mol_entries_pickle_location=f'{output_network_folder}/mol_entries.pickle',
-        species_report=f'{output_network_folder}/unfiltered_species_report.tex',
-        species_decision_tree=no_species_decision_tree,
-        coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
-        generate_unfiltered_mol_pictures=False
-    )
+    if os.path.exists(f'{output_network_folder}/mol_entries.pickle'):
+        with open(f'{output_network_folder}/mol_entries.pickle', 'rb') as file:
+            mol_entries = pickle.load(file)
+    else:
+        mol_entries = species_filter(
+            database_entries,
+            mol_entries_pickle_location=f'{output_network_folder}/mol_entries.pickle',
+            species_report=f'{output_network_folder}/unfiltered_species_report.tex',
+            species_decision_tree=no_species_decision_tree,
+            coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
+            generate_unfiltered_mol_pictures=False
+        )
     return mol_entries
 
 
