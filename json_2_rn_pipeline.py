@@ -181,19 +181,10 @@ if __name__ == '__main__':
     parser.add_argument("-j", "--json_path", help="Path to json file to be calculated", type=str, required=True)
     parser.add_argument("-o", "--output_network_folder", help="Path to output network folder", type=str, required=True)
     parser.add_argument("-n", "--old_network_folder", help="Only for append mode", type=str, required=False)
-    parser.add_argument("-a", "--machine_num", help="", type=str, required=False,default="None")
-    parser.add_argument("-i", "--machine_id", help="", type=str, required=False,default="None")
+    parser.add_argument("-a", "--machine_num", help="", type=int, required=False,default=None)
+    parser.add_argument("-i", "--machine_id", help="", type=int, required=False,default=None)
 
     args = parser.parse_args()
-    if args.machine_num=="None":
-        args.machine_num=None
-    else:
-        args.machine_num=int(args.machine_num)
-
-    if args.machine_id=="None":
-        args.machine_id=None
-    else:
-        args.machine_id=int(args.machine_id)
     if args.machine_id==None and args.machine_num!=None:
         print("machine_id must be provided if machine_num is provided")
         exit()
