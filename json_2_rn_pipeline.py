@@ -191,12 +191,13 @@ if __name__ == '__main__':
     if args.machine_id!=None and args.machine_num==None:
         print("machine_num must be provided if machine_id is provided")
         exit()
-    if args.machine_id>=args.machine_num:
-        print("machine_id must be smaller than machine_num")
-        exit()
-    if args.machine_id<0 or args.machine_num<=0:
-        print("machine_id and machine_num must be positive")
-        exit()
+    if args.machine_id!=None and args.machine_num!=None:
+        if args.machine_id>=args.machine_num:
+            print("machine_id must be smaller than machine_num")
+            exit()
+        if args.machine_id<0 or args.machine_num<=0:
+            print("machine_id and machine_num must be positive")
+            exit()
 
 
 
