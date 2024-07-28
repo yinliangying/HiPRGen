@@ -25,7 +25,7 @@ def timer(func):
         func.spend+=end_time - start_time
         if result == True:
             func.true_times+=1
-        if func.call_times%1000==0:
+        if func.call_times%100000==0:
             #导致异常退出 无法启动
             #comm = MPI.COMM_WORLD
             #rank = comm.Get_rank()
@@ -788,7 +788,7 @@ class unit_data(MSONable):
     def __str__(self):
         return "增量更新数据模式下，值计算和新物质有关的反应，如果和反应新物质无关，返回True"
 
-    @timer
+    #@timer
     def __call__(self, reaction, mols, params):
         reactants=reaction['reactants']
         products=reaction['products']

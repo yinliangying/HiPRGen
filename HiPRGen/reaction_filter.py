@@ -184,12 +184,12 @@ def dispatcher(
                 batches_left_at_last_checkpoint -
                 batches_left_at_current_checkpoint)
 
-            batch_consumption_rate = batch_count_diff / time_diff
+            batch_consumption_rate = batch_count_diff / time_diff * 60
 
             log_message("batches remaining:", batches_left_at_current_checkpoint)
             log_message("batch consumption rate:",
                         batch_consumption_rate,
-                        "batches per second")
+                        "batches per minute")
 
 
             batches_left_at_last_checkpoint = batches_left_at_current_checkpoint
