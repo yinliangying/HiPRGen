@@ -14,7 +14,7 @@ class DispatcherPayload(MSONable):
             reaction_network_db_file,
             report_file,
             commit_frequency = 10000,
-            checkpoint_interval = 10,
+            checkpoint_interval = 120,
             machine_num=None,machine_id=None):
 
         self.bucket_db_file = bucket_db_file

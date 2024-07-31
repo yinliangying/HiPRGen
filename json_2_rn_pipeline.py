@@ -34,7 +34,7 @@ def apply_species_filter(json_path: str, output_network_folder: str):
             database_entries,
             mol_entries_pickle_location=f'{output_network_folder}/mol_entries.pickle',
             species_report=f'{output_network_folder}/unfiltered_species_report.tex',
-            species_decision_tree=no_species_decision_tree,
+            species_decision_tree=li_species_decision_tree,
             coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
             generate_unfiltered_mol_pictures=False
         )
