@@ -64,7 +64,7 @@ for machine_id in range(machine_num):
         machine_sql_str=f"""select 
          reaction_id ,number_of_reactants ,number_of_products , reactant_1  ,reactant_2 ,product_1 ,
          product_2  ,rate  , dG   ,dG_barrier  ,is_redox 
-         from reaction limit {limit} offset {offset} ;
+         from reactions limit {limit} offset {offset} ;
         """
         print(machine_sql_str)
         rn_cur.execute(machine_sql_str)
@@ -74,7 +74,7 @@ for machine_id in range(machine_num):
 
 
             all_sql_str=f"""
-            insert into reaction 
+            insert into reactions 
             (reaction_id      ,  number_of_reactants ,  number_of_products ,  reactant_1  , reactant_2 , product_1 ,  product_2  , rate  , dG   ,dG_barrier  ,is_redox )
              values 
             ({all_reaction_id}, {number_of_reactants}, {number_of_products}, {reactant_1}, {reactant_2}, {product_1},{product_2}, {rate}, {dG}, {dG_barrier}, {is_redox})
