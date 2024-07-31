@@ -41,7 +41,22 @@ all_number_of_species=len(pickle.load(open(f"{output_dir_all}/mol_entries.pickle
 
 all_rn_con = sqlite3.connect( f"{output_dir_all}/rn.sqlite")
 all_rn_cur = all_rn_con.cursor()
-
+all_rn_cur.execute("""
+    CREATE TABLE reactions (
+            reaction_id         INTEGER NOT NULL PRIMARY KEY,
+            number_of_reactants INTEGER NOT NULL,
+            number_of_products  INTEGER NOT NULL,
+            reactant_1          INTEGER NOT NULL,
+            reactant_2          INTEGER NOT NULL,
+            product_1           INTEGER NOT NULL,
+            product_2           INTEGER NOT NULL,
+            rate                REAL NOT NULL,
+            dG                  REAL NOT NULL,
+            dG_barrier          REAL NOT NULL,
+            is_redox            INTEGER NOT NULL
+    );
+""")
+all_rn_con.commit()
 
 limit=10000
 all_reaction_id=0
