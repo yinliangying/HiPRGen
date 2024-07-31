@@ -54,7 +54,7 @@ for machine_id in range(machine_num):
     machine_sql_str=f"""select number_of_reactions  from  metadata;"""
     print(machine_sql_str)
     rn_cur.execute(machine_sql_str)
-    for tmp_number_of_reactions in rn_cur:
+    for (tmp_number_of_reactions,) in rn_cur:
         machine_number_of_reactions=tmp_number_of_reactions
         break
     print(f" machine_id:{machine_id},machine_number_of_reactions:{machine_number_of_reactions}")
