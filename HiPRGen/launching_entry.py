@@ -29,7 +29,6 @@ libe_default_paths = {
     'mol_picture_folder_path':rf'{libe_fmol_dir}/mol_pictures',
 }
 
-common_sub_mol_info = {'OH-1': 1835, 'C2H4': 9998, 'H2O': 7689, 'H2': 8930, 'CO': 4293, 'CO2': 579, 'H+1': 8450, 'Li2CO3+1': 8380, 'LiCO3-1': 7950, 'Li+1': 5253, 'LiF': 5259}
 
 def smiles_to_xyz(smiles: str, output_file_path: str):
     # Create a molecule from the SMILES string
@@ -190,6 +189,9 @@ def run_with_smiles(output_dir: str, simulation_times: int, num_cores: int, main
     if sub_mol_name == None:
         sub_id = -1
     else:
+        raise NotImplementedError
+        common_sub_mol_info = {'OH-1': 1835, 'C2H4': 9998, 'H2O': 7689, 'H2': 8930, 'CO': 4293, 'CO2': 579, 'H+1': 8450,
+                               'Li2CO3+1': 8380, 'LiCO3-1': 7950, 'Li+1': 5253, 'LiF': 5259} #这个是旧libe的id
         sub_id = common_sub_mol_info[sub_mol_name]
     run_with_id(main_mol_id=main_mol_id, sub_mol_id=sub_id, output_dir=output_dir,
                 simulation_times=simulation_times, num_cores=num_cores, default_file_paths=default_file_paths)
