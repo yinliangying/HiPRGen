@@ -17,10 +17,16 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 
+# libe_default_paths = {
+#     'rn_db_path': r'/root/HiPRGen/data/libe/rn.sqlite',
+#     'mol_entry_file_path': r'/root/HiPRGen/data/libe/mol_entries.pickle',
+#     'mol_picture_folder_path': r'/root/HiPRGen/data/libe/mol_pictures',
+# }
+libe_fmol_dir="/root/HiPRGen/data/new_libe_fmol_20240731/"
 libe_default_paths = {
-    'rn_db_path': r'/root/HiPRGen/data/libe/rn.sqlite',
-    'mol_entry_file_path': r'/root/HiPRGen/data/libe/mol_entries.pickle',
-    'mol_picture_folder_path': r'/root/HiPRGen/data/libe/mol_pictures',
+    'rn_db_path':rf'{libe_fmol_dir}/rn.sqlite',
+    'mol_entry_file_path':rf'{libe_fmol_dir}/mol_entries.pickle',
+    'mol_picture_folder_path':rf'{libe_fmol_dir}/mol_pictures',
 }
 
 common_sub_mol_info = {'OH-1': 1835, 'C2H4': 9998, 'H2O': 7689, 'H2': 8930, 'CO': 4293, 'CO2': 579, 'H+1': 8450, 'Li2CO3+1': 8380, 'LiCO3-1': 7950, 'Li+1': 5253, 'LiF': 5259}
