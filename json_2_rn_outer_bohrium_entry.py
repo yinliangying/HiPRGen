@@ -1,3 +1,4 @@
+#外部启动脚本
 import json
 import os
 import shutil
@@ -11,7 +12,7 @@ json_input_file_dir= "hiprgen_json2rn_input/new_libe_fmol_filtered/"
 output_dir_prefix="hiprgen_json2rn_output/new_libe_fmol_filtered_"
 """
 for machine_id in range(machine_num):
-    python_str=f" python /root/HiPRGen/json_2_rn_pipeline.py  -m ab_initio -j {json_input_file_name}  -o  ./ --machine_num {machine_num} --machine_id {machine_id}"
+    python_str=f" python /root/HiPRGen/json_2_rn_bohirum_entry.py  -m ab_initio -j {json_input_file_name}  -o  ./ --machine_num {machine_num} --machine_id {machine_id}"
     json_dict={
             "job_name": f"hiprgen_json2rn_libe_fmol_{machine_num}_{machine_id}",
             "command":python_str,

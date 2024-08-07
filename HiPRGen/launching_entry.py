@@ -22,11 +22,11 @@ from rdkit.Chem import AllChem
 #     'mol_entry_file_path': r'/root/HiPRGen/data/libe/mol_entries.pickle',
 #     'mol_picture_folder_path': r'/root/HiPRGen/data/libe/mol_pictures',
 # }
-libe_fmol_dir="/root/HiPRGen/data/new_libe_fmol_20240731/"
+database_dir= "/root/HiPRGen/data/new_libe_fmol_20240731/"
 libe_default_paths = {
-    'rn_db_path':rf'{libe_fmol_dir}/rn.sqlite',
-    'mol_entry_file_path':rf'{libe_fmol_dir}/mol_entries.pickle',
-    'mol_picture_folder_path':rf'{libe_fmol_dir}/mol_pictures',
+    'rn_db_path':rf'{database_dir}/rn.sqlite',
+    'mol_entry_file_path':rf'{database_dir}/mol_entries.pickle',
+    'mol_picture_folder_path':rf'{database_dir}/mol_pictures',
 }
 
 
