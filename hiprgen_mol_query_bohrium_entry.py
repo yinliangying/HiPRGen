@@ -9,41 +9,12 @@ from HiPRGen.report_generator import ReportGenerator
 import json
 from HiPRGen.launching_entry import database_dir
 import sys
-
+from HiPRGen.get_common_sub_mol_info import get_common_sub_mol_info
 sys.path.append(r'/usr/local/lib/python3.10/dist-packages')
 
 from pdf2image import convert_from_path
 
 #获取常见辅料分子id  H+ OH- Li2CO3这些
-def get_common_sub_mol_info(mol_pkl_path: str, xyz_folder_path: str):
-    cwd_sub = os.getcwd()
-    with open(mol_pkl_path, "rb") as pickle_file:
-        mol_entries = pickle.load(pickle_file)
-    q_id_list = []
-    mol_name_list = []
-    for a_charge_folder in os.listdir(xyz_folder_path):
-        os.chdir(xyz_folder_path)
-        os.chdir(a_charge_folder)
-        if a_charge_folder.startswith('zero'):
-            a_charge = 0
-        elif a_charge_folder.startswith('positive_one_'):
-            a_charge = 1
-        else:
-            a_charge = -1
-
-        for a_file in os.listdir('./'):
-            try:
-                q_id = find_mol_entry_from_xyz_and_charge(mol_entries=mol_entries,
-                                                          xyz_file_path=a_file,
-                                                          charge=a_charge)
-                q_id_list.append(q_id)
-                mol_name_list.append(a_file[:-4])
-            except:
-                pass
-    common_sub_mol_info = dict(zip(mol_name_list, q_id_list))
-    os.chdir(cwd_sub)
-    return common_sub_mol_info
-
 
 def smiles_to_xyz(smiles: str, output_file_path: str):
     # Create a molecule from the SMILES string
@@ -210,11 +181,10 @@ libe_default_paths = {
     'mol_picture_folder_path':os.path.join(database_dir, r'mol_pictures'),
 }
 ##################################################################################################################
-sub_mol_xyz_path = r'/root/HiPRGen/data/common_xyz_files'
+
 ##################################################################################################################
 common_sub_mol_info = get_common_sub_mol_info(
     mol_pkl_path=libe_default_paths['mol_entry_file_path'],
-    xyz_folder_path=sub_mol_xyz_path
 )
 rev_common_sub_mol_info = dict(zip(common_sub_mol_info.values(), common_sub_mol_info.keys()))
 common_sub_mol_ids = list(common_sub_mol_info.values())
