@@ -6,7 +6,9 @@ from rdkit.Chem import Draw
 import matplotlib.pyplot as plt
 from ase.db import connect
 from ase import Atoms
-import openbabel
+from ase.symbols import symbols2numbers
+from openbabel import openbabel
+
 
 def plot_molecule_to_pdf(mol, output_filename="molecule.pdf", charge: int=0):
     """
@@ -44,6 +46,34 @@ def plot_molecule_to_pdf(mol, output_filename="molecule.pdf", charge: int=0):
 
     print(f"Molecule saved as '{output_filename}'")
 
+
+def plot_atom_to_pdf(atom_symbol, output_filename="molecule.pdf", charge: int=0):
+    # Create a matplotlib figure
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    # Remove axes
+    ax.axis('off')
+
+    # Determine the symbol based on the charge
+    if charge == 0:
+        symbol = f'{atom_symbol}'
+    elif charge == 1:
+        symbol = atom_symbol + '$^{+}$'
+    elif charge == -1:
+        symbol = atom_symbol + '$^{-}$'
+    else:
+        raise ValueError("Charge must be -1, 0, or 1")
+
+    # Add the text "H" in the center
+    ax.text(0.5, 0.5, symbol, fontsize=50, ha='center', va='center')
+
+    # Save as PDF
+    plt.savefig(output_filename, format="pdf", bbox_inches="tight", dpi=600)
+    plt.close(fig)  # Close the figure to free up memory
+
+    print(f"Molecule saved as '{output_filename}'")
+
+
 def xyz_2_db_mol(idx):
     # Initialize Open Babel conversion
     obConversion = openbabel.OBConversion()
@@ -54,6 +84,7 @@ def xyz_2_db_mol(idx):
     mol.ConnectTheDots()
     mol.PerceiveBondOrders()
     return mol
+
 
 def obmol_to_rdkit_mol(obmol):
     # Create an empty RDKit molecule
@@ -84,6 +115,21 @@ def obmol_to_rdkit_mol(obmol):
 
     return rdkit_mol
 
+
+def set_radical_electrons(rd_mol):
+    for idx, atom in enumerate(rd_mol.GetAtoms()):
+        atom_num = atom.GetAtomicNum()
+        if atom_num == 3:
+            continue
+        typical_valence = Chem.GetPeriodicTable().GetDefaultValence(atom.GetAtomicNum())
+        actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
+        if actual_valence < typical_valence:
+            rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(int(typical_valence-actual_valence))
+            if atom_num == 6:
+                rd_mol.GetAtomWithIdx(idx).SetProp('atomLabel', 'C')
+    return rd_mol
+
+
 def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
     """
     Process a pickle file containing molecule information and generate PDF images for each molecule.
@@ -107,6 +153,12 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
         # Create XYZ file
         a_mol = a_mol_info.molecule
         a_new_atoms = Atoms(symbols=a_mol.labels, positions=a_mol.cart_coords)
+
+        output_filename = os.path.join(output_dir, f"{idx}.pdf")
+        if len(a_new_atoms)==1:
+            plot_atom_to_pdf(atom_symbol=a_mol.labels[0], output_filename=output_filename, charge=a_mol.charge)
+            continue
+
         xyz_filename = f"{idx}.xyz"
         a_new_atoms.write(xyz_filename)
 
@@ -120,9 +172,9 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
         rdkit_mol.SetProp("_Name", f"Molecule {idx}")
         rdkit_mol.SetProp("Charge", str(a_mol.charge))
         rdkit_mol.SetProp("SpinMultiplicity", str(a_mol.spin_multiplicity))
+        rdkit_mol = set_radical_electrons(rdkit_mol)
 
         # Plot molecule to PDF
-        output_filename = os.path.join(output_dir, f"{idx}.pdf")
         plot_molecule_to_pdf(rdkit_mol, output_filename, a_mol.charge)
 
         # Remove temporary XYZ file
@@ -130,6 +182,20 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
 
     print(f"Processed {len(f_data)} molecules. Images saved in '{output_dir}' directory.")
 
+
+def apply_species_filter(json_path: str):
+    with open(json_path, 'r') as f:
+        database_entries = json.load(fp=f)
+
+    mol_entries = species_filter(
+        database_entries,
+        mol_entries_pickle_location='mol_entries.pickle',
+        species_report='unfiltered_species_report.tex',
+        species_decision_tree=no_species_decision_tree,
+        coordimer_weight=lambda mol: (mol.penalty, mol.solvation_free_energy),
+        generate_unfiltered_mol_pictures=False
+    )
+
 # Example usage
 if __name__ == "__main__":
-    mol_pkl_2_mol_pics(r"mol_entries.pickle", 'molecule_images_v3')
+    mol_pkl_2_mol_pics(r"mol_entries.pickle", 'mol_pictures')

@@ -14,7 +14,7 @@ sys.path.append(r'/usr/local/lib/python3.10/dist-packages')
 
 from pdf2image import convert_from_path
 
-
+#获取常见辅料分子id  H+ OH- Li2CO3这些
 def get_common_sub_mol_info(mol_pkl_path: str, xyz_folder_path: str):
     cwd_sub = os.getcwd()
     with open(mol_pkl_path, "rb") as pickle_file:
@@ -210,7 +210,7 @@ libe_default_paths = {
     'mol_picture_folder_path':os.path.join(database_dir, r'mol_pictures'),
 }
 ##################################################################################################################
-sub_mol_xyz_path = r'/root/test_common_xyz/common_xyz_files'
+sub_mol_xyz_path = r'/root/HiPRGen/data/common_xyz_files'
 ##################################################################################################################
 common_sub_mol_info = get_common_sub_mol_info(
     mol_pkl_path=libe_default_paths['mol_entry_file_path'],
