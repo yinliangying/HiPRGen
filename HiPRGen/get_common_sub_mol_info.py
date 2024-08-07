@@ -4,7 +4,7 @@ import pickle
 import sys
 
 sys.path.append(r'/usr/local/lib/python3.10/dist-packages')
-sub_mol_xyz_path = r'/root/test_common_xyz/common_xyz_files'
+sub_mol_xyz_path = r'/root/HiPRGen/data/common_xyz_files'
 def get_common_sub_mol_info(mol_pkl_path: str,):
     cwd_sub = os.getcwd()
     with open(mol_pkl_path, "rb") as pickle_file:
