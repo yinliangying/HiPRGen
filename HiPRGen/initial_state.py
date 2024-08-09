@@ -26,9 +26,9 @@ def find_mol_entry_from_xyz_and_charge(mol_entries, xyz_file_path, charge):
         mol_entry = mol_entries[index]
         species_mol_graph = mol_entry.mol_graph
 
-        # if mol_entry.charge == charge:
-        #     match = target_mol_graph.isomorphic_to(species_mol_graph)
-        match = target_mol_graph.isomorphic_to(species_mol_graph)
+        if mol_entry.charge == charge:
+            match = target_mol_graph.isomorphic_to(species_mol_graph)
+        # match = target_mol_graph.isomorphic_to(species_mol_graph)
 
     if match:
         return mol_entry.ind
