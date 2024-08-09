@@ -7,9 +7,9 @@ from HiPRGen.initial_state import find_mol_entry_from_xyz_and_charge
 import pickle
 from HiPRGen.report_generator import ReportGenerator
 import json
-from HiPRGen.launching_entry import database_dir
 import sys
 from HiPRGen.get_common_sub_mol_info import get_common_sub_mol_info
+from HiPRGen.launching_entry import libe_default_paths
 sys.path.append(r'/usr/local/lib/python3.10/dist-packages')
 
 from pdf2image import convert_from_path
@@ -174,17 +174,20 @@ def main_query(reaction_db_file_path: str, mol_entry_file_path: str, main_mol_sm
 with open(r"./app_param.json") as f:
     data = json.load(f)
 
-
-libe_default_paths = {
-    'rn_db_path':os.path.join(database_dir, r'rn.sqlite'),
-    'mol_entry_file_path':os.path.join(database_dir, r'mol_entries.pickle'),
-    'mol_picture_folder_path':os.path.join(database_dir, r'mol_pictures'),
-}
+if "database_dir" not in data:
+    database_paths=libe_default_paths
+else:
+    database_dir = data["database_dir"]
+    database_paths = {
+        'rn_db_path':os.path.join(database_dir, r'rn.sqlite'),
+        'mol_entry_file_path':os.path.join(database_dir, r'mol_entries.pickle'),
+        'mol_picture_folder_path':os.path.join(database_dir, r'mol_pictures'),
+    }
 ##################################################################################################################
 
 ##################################################################################################################
 common_sub_mol_info = get_common_sub_mol_info(
-    mol_pkl_path=libe_default_paths['mol_entry_file_path'],
+    mol_pkl_path=database_paths['mol_entry_file_path'],
 )
 rev_common_sub_mol_info = dict(zip(common_sub_mol_info.values(), common_sub_mol_info.keys()))
 common_sub_mol_ids = list(common_sub_mol_info.values())
@@ -199,8 +202,8 @@ reaction_head = ['reaction_id', 'number_of_reactants', 'number_of_products', 're
 
 
 main_query(
-    reaction_db_file_path=libe_default_paths['rn_db_path'],
-    mol_entry_file_path=libe_default_paths['mol_entry_file_path'],
-    mol_picture_folder_path=libe_default_paths['mol_picture_folder_path'],
+    reaction_db_file_path=database_paths['rn_db_path'],
+    mol_entry_file_path=database_paths['mol_entry_file_path'],
+    mol_picture_folder_path=database_paths['mol_picture_folder_path'],
     main_mol_smiles=data['smiles'],
 )

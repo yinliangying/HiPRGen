@@ -33,15 +33,21 @@ class SMILES(BaseModel):
     main_mol: Optional[InputMoleculeContent] = Field(default='CCOC(=O)OCC', content_type="smiles", description="Input primary molecule")
     sub_mol: Subsidiary_Molecule_Options = Field(..., description='Input subsidiary molecule')
     n_sim: Int = Field(default=1000, description='Number of simulations for kMC')
-
+    database_dir: String = Field( description='Path to the database')
 
 def SMILES_task(opts: SMILES, output_directory):
+    database_paths = {
+        'rn_db_path': rf'{opts.database_dir}/rn.sqlite',
+        'mol_entry_file_path': rf'{opts.database_dir}/mol_entries.pickle',
+        'mol_picture_folder_path': rf'{opts.database_dir}/mol_pictures',
+    }
     run_with_smiles(
         simulation_times=opts.n_sim,
         num_cores=8,
         main_mol_smiles=opts.main_mol.get_value(),
         sub_mol_name=opts.sub_mol.value,
-        output_dir=output_directory
+        output_dir=output_directory,
+        default_file_paths=database_paths
     )
 
 
@@ -50,15 +56,22 @@ class ID(BaseModel):
     main_mol_id: Int = Field(default=10442, description='Input ID for the main molecule')
     sub_mol_id: Int = Field(default=5253, description='Input ID for the subsidiary molecule')
     n_sim: Int = Field(default=1000, description='Number of simulations for kMC')
+    database_dir: String = Field( description='Path to the database')
 
 
 def ID_task(opts: ID, output_directory):
+    database_paths = {
+        'rn_db_path': rf'{opts.database_dir}/rn.sqlite',
+        'mol_entry_file_path': rf'{opts.database_dir}/mol_entries.pickle',
+        'mol_picture_folder_path': rf'{opts.database_dir}/mol_pictures',
+    }
     run_with_id(
         main_mol_id=opts.main_mol_id,
         sub_mol_id=opts.sub_mol_id,
         simulation_times=opts.n_sim,
         num_cores=8,
-        output_dir=output_directory
+        output_dir=output_directory,
+        default_file_paths=database_paths
     )
 
 
