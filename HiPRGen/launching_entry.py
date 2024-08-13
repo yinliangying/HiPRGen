@@ -136,11 +136,11 @@ def run_with_id(main_mol_id: int, sub_mol_id: int, output_dir: str, simulation_t
     consumption_abs_workbase = os.path.abspath('consumption')
     os.makedirs(pathways_abs_workbase)
     os.makedirs(consumption_abs_workbase)
-    for species_index in sinks_sorted[:10]:
+    for idx, species_index in enumerate(sinks_sorted[:10]):
         mol_entry = mol_entries[species_index]
         formula = mol_entry.molecule.composition.alphabetical_formula
         formula = '_'.join(formula.split())
-        tex_file_name = f'id_{species_index}_formula_{formula}.tex'
+        tex_file_name = f'PC_rank_{idx}_id_{species_index}_formula_{formula}.tex'
         os.chdir(pathways_abs_workbase)
         generate_pathway_report(
             pathfinding=pathfinding,

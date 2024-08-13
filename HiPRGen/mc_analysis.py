@@ -1162,7 +1162,7 @@ def sink_report(
         simulation_replayer.sinks,
         key=lambda i: -simulation_replayer.sink_data[i]["ratio"])
 
-    for species_index in sinks_sorted:
+    for species_index in sinks_sorted[:10]:
         sink_data = simulation_replayer.sink_data[species_index]
 
         number_of_consuming_reactions = sink_data[
