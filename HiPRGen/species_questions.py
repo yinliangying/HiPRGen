@@ -282,38 +282,29 @@ class fix_hydrogen_bonding(MSONable):
         pass
 
     def __call__(self, mol):
-        if mol.num_atoms > 1:
-            for i in range(mol.num_atoms):
-                if mol.species[i] == 'H':
-
-                    adjacent_atoms = []
-
-                    for bond in mol.graph.edges:
-                        if i in bond[0:2]:
-
-                            if i == bond[0]:
-                                adjacent_atom = bond[1]
-                            else:
-                                adjacent_atom = bond[0]
-
-                            displacement = (mol.atom_locations[adjacent_atom] -
-                                            mol.atom_locations[i])
-
-                            dist = np.inner(displacement, displacement)
-
-                            adjacent_atoms.append((adjacent_atom, dist))
-
-
-                    closest_atom, _ = min(adjacent_atoms, key=lambda pair: pair[1])
-
-                    for adjacent_atom, _ in adjacent_atoms:
-                        if adjacent_atom != closest_atom:
-                            mol.graph.remove_edge(i, adjacent_atom)
-                            if adjacent_atom in mol.covalent_graph:
-                                mol.covalent_graph.remove_edge(i, adjacent_atom)
-
-
-
+        try:
+            if mol.num_atoms > 1:
+                for i in range(mol.num_atoms):
+                    if mol.species[i] == 'H':
+                        adjacent_atoms = []
+                        for bond in mol.graph.edges:
+                            if i in bond[0:2]:
+                                if i == bond[0]:
+                                    adjacent_atom = bond[1]
+                                else:
+                                    adjacent_atom = bond[0]
+                                displacement = (mol.atom_locations[adjacent_atom] -
+                                                mol.atom_locations[i])
+                                dist = np.inner(displacement, displacement)
+                                adjacent_atoms.append((adjacent_atom, dist))
+                        closest_atom, _ = min(adjacent_atoms, key=lambda pair: pair[1])
+                        for adjacent_atom, _ in adjacent_atoms:
+                            if adjacent_atom != closest_atom:
+                                mol.graph.remove_edge(i, adjacent_atom)
+                                if adjacent_atom in mol.covalent_graph:
+                                    mol.covalent_graph.remove_edge(i, adjacent_atom)
+        except:
+            pass
         return False
 
 

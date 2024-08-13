@@ -160,14 +160,16 @@ def species_filter(
         lowest_energy_coordimer = min(g,key=coordimer_weight)
         return lowest_energy_coordimer
 
-
-    mol_entries = mol_entries_unfiltered
-
+    # mol_entries = []
     # for tag_group in sort_into_tags(mol_entries_filtered).values():
     #     for iso_group in groupby(really_covalent_isomorphic, tag_group):
     #         mol_entries.append(
     #             collapse_isomorphism_group(iso_group))
+    # print(f'Filtered number: {len(mol_entries)}')
 
+    mol_entries = mol_entries_filtered
+    print(f'Unfiltered number: {len(mol_entries_unfiltered)}')
+    print(f'Filtered number: {len(mol_entries)}')
 
     log_message("assigning indices")
 
