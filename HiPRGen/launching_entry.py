@@ -140,7 +140,7 @@ def run_with_id(main_mol_id: int, sub_mol_id: int, output_dir: str, simulation_t
         mol_entry = mol_entries[species_index]
         formula = mol_entry.molecule.composition.alphabetical_formula
         formula = '_'.join(formula.split())
-        tex_file_name = f'PC_rank_{idx}_id_{species_index}_formula_{formula}.tex'
+        tex_file_name = f'PC_rank_{idx+1}_id_{species_index}_formula_{formula}.tex'
         os.chdir(pathways_abs_workbase)
         generate_pathway_report(
             pathfinding=pathfinding,
