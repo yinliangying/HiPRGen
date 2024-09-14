@@ -10,7 +10,7 @@ machine_num=10
 json_input_file_name= "libe_and_fmol_0911.json"
 json_input_file_dir= "hiprgen_json2rn_input/libe_and_fmol_0911/"
 output_dir_prefix="hiprgen_json2rn_output/libe_and_fmol_0911_"
-image_name="registry.dp.tech/dptech/prod-17396/hiprgen:20240914"
+image_name="registry.dp.tech/dptech/prod-17396/hiprgen:202409142"
 
 for machine_id in range(machine_num):
     python_str=f" python /root/HiPRGen/json_2_rn_bohirum_entry.py  -m ab_initio -j {json_input_file_name}  -o  ./ --machine_num {machine_num} --machine_id {machine_id}"
