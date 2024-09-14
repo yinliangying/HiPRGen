@@ -1,4 +1,4 @@
-#外部启动脚本
+#  启动路径 /personal/Bohrium_task_hiprgen_rn
 import json
 import os
 import shutil
@@ -7,10 +7,11 @@ import pickle
 
 
 machine_num=10
-json_input_file_name= "filtered_libe_and_fmol.json"
-json_input_file_dir= "hiprgen_json2rn_input/new_libe_fmol_filtered/"
-output_dir_prefix="hiprgen_json2rn_output/new_libe_fmol_filtered_"
-"""
+json_input_file_name= "libe_and_fmol_0911.json"
+json_input_file_dir= "hiprgen_json2rn_input/libe_and_fmol_0911/"
+output_dir_prefix="hiprgen_json2rn_output/libe_and_fmol_0911_"
+image_name="registry.dp.tech/dptech/prod-17396/hiprgen:20240914"
+
 for machine_id in range(machine_num):
     python_str=f" python /root/HiPRGen/json_2_rn_bohirum_entry.py  -m ab_initio -j {json_input_file_name}  -o  ./ --machine_num {machine_num} --machine_id {machine_id}"
     json_dict={
@@ -19,7 +20,7 @@ for machine_id in range(machine_num):
             "platform": "ali",
             "disk_size": 200,
             "machine_type": "c64_m512_cpu",
-            "image_name": "registry.dp.tech/dptech/prod-17396/hiprgen:20240728",
+            "image_name": image_name,
             "program_id": 14480,
             "input":json_input_file_dir,
             "result":f"{output_dir_prefix}{machine_num}_{machine_id}",
@@ -30,9 +31,10 @@ for machine_id in range(machine_num):
     shell_str=f"lbg job submit -i {json_params_file_path}"
     os.system(shell_str)
     print(shell_str)
-"""
 
-#全部运行完后
+exit()
+
+#全部运行完后 把各个子表合并到all中
 output_dir_all=f"{output_dir_prefix}all"
 if not os.path.exists(output_dir_all):
     os.mkdir(output_dir_all)
