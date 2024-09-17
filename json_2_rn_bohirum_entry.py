@@ -201,6 +201,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--old_network_folder", help="Only for append mode", type=str, required=False)
     parser.add_argument("-a", "--machine_num", help="", type=int, required=False,default=None)
     parser.add_argument("-i", "--machine_id", help="", type=int, required=False,default=None)
+    parser.add_argument("-r", "--rm_bucket_pic", help="", action='store_true')
 
     args = parser.parse_args()
     if args.machine_id==None and args.machine_num!=None:
@@ -224,6 +225,9 @@ if __name__ == '__main__':
 
         get_rn_db(args.json_path, args.output_network_folder,
                   args.machine_num,args.machine_id)
+        if args.rm_bucket_pic:
+            os.system("rm -rf mol_pictures/")
+            os.system("rm buckets.sqlite")
 
     if args.mode == 'append':
         new_network_folder= "new_lib"
