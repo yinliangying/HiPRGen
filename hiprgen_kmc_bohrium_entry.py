@@ -54,7 +54,7 @@ def SMILES_task(opts: SMILES, output_directory):
 class ID(BaseModel):
     type: Literal['ID']
     main_mol_id: Int = Field(default=10442, description='Input ID for the main molecule')
-    sub_mol_id: Int = Field(default=5253, description='Input ID for the subsidiary molecule')
+    sub_mol_ids: List = Field(default=5253, description='Input IDs for the subsidiary molecule')
     n_sim: Int = Field(default=1000, description='Number of simulations for kMC')
     database_dir: String = Field( description='Path to the database')
 
@@ -67,7 +67,7 @@ def ID_task(opts: ID, output_directory):
     }
     run_with_id(
         main_mol_id=opts.main_mol_id,
-        sub_mol_id=opts.sub_mol_id,
+        sub_mol_id=opts.sub_mol_ids,
         simulation_times=opts.n_sim,
         num_cores=8,
         output_dir=output_directory,

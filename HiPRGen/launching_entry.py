@@ -86,7 +86,7 @@ def chk_ids_with_rn_db(main_mol_id: int, sub_mol_id: int, rn_db_path: str):
     return has_reaction > 0
 
 
-def run_with_id(main_mol_id: int, sub_mol_id: int, output_dir: str, simulation_times: int, num_cores: int,
+def run_with_id(main_mol_id: int, sub_mol_ids: list, output_dir: str, simulation_times: int, num_cores: int,
                 default_file_paths: dict = libe_default_paths):
     cwd_ = os.getcwd()
     output_dir = os.path.abspath(output_dir)
@@ -94,17 +94,20 @@ def run_with_id(main_mol_id: int, sub_mol_id: int, output_dir: str, simulation_t
     mol_entry_file_path = default_file_paths['mol_entry_file_path']
     mol_picture_folder_path = default_file_paths['mol_picture_folder_path']
     rn_db_path = default_file_paths['rn_db_path']
-    match_flag = chk_ids_with_rn_db(main_mol_id=main_mol_id, sub_mol_id=sub_mol_id, rn_db_path=rn_db_path)
-    if not match_flag:
-        os.chdir(output_dir)
-        with open('No match reaction id for input', 'w') as f:
-            pass
-        os.chdir(cwd_)
-        return
+    for sub_mol_id in sub_mol_ids:
+        match_flag = chk_ids_with_rn_db(main_mol_id=main_mol_id, sub_mol_id=sub_mol_id, rn_db_path=rn_db_path)
+        if not match_flag:
+            os.chdir(output_dir)
+            with open('No match reaction id for input', 'w') as f:
+                pass
+            os.chdir(cwd_)
+            return
 
     with open(mol_entry_file_path, "rb") as pickle_file:
         mol_entries = pickle.load(pickle_file)
-    initial_state = {main_mol_id: 30, sub_mol_id: 30}
+    initial_state = {main_mol_id: 30}
+    for sub_mol_id in sub_mol_ids:
+        initial_state[sub_mol_id] = 30
     initial_state_path = os.path.join(output_dir, 'initial_state.sqlite')
     insert_initial_state(initial_state, mol_entries, initial_state_path)
 
@@ -161,6 +164,7 @@ def run_with_id(main_mol_id: int, sub_mol_id: int, output_dir: str, simulation_t
     os.chdir(cwd_)
 
 
+#不推荐使用
 def run_with_smiles(output_dir: str, simulation_times: int, num_cores: int, main_mol_smiles: str, sub_mol_name: str=None,
                 default_file_paths: dict = libe_default_paths):
     mol_entry_file_path = default_file_paths['mol_entry_file_path']
