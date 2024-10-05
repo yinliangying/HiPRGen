@@ -67,7 +67,7 @@ def ID_task(opts: ID, output_directory):
     }
     run_with_id(
         main_mol_id=opts.main_mol_id,
-        sub_mol_id=opts.sub_mol_ids,
+        sub_mol_ids=opts.sub_mol_ids,
         simulation_times=opts.n_sim,
         num_cores=8,
         output_dir=output_directory,
