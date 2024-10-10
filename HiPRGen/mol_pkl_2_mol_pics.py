@@ -116,7 +116,8 @@ def obmol_to_rdkit_mol(obmol):
     return rdkit_mol
 
 
-def set_radical_electrons(rd_mol):
+def set_radical_electrons(rd_mol, mol_charge):
+    abs_mol_charge = abs(mol_charge)
     for idx, atom in enumerate(rd_mol.GetAtoms()):
         atom_num = atom.GetAtomicNum()
         if atom_num == 3:
@@ -124,7 +125,12 @@ def set_radical_electrons(rd_mol):
         typical_valence = Chem.GetPeriodicTable().GetDefaultValence(atom.GetAtomicNum())
         actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
         if actual_valence < typical_valence:
-            rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(int(typical_valence-actual_valence))
+            radical_charge_on_atom = int(typical_valence-actual_valence)
+            if abs_mol_charge != 0:
+                radical_charge_append = min(radical_charge_on_atom, abs_mol_charge)
+                radical_charge_on_atom = radical_charge_on_atom - radical_charge_append
+                abs_mol_charge = abs_mol_charge - radical_charge_append
+            rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(radical_charge_on_atom)
             if atom_num == 6:
                 rd_mol.GetAtomWithIdx(idx).SetProp('atomLabel', 'C')
     return rd_mol
@@ -172,7 +178,7 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
         rdkit_mol.SetProp("_Name", f"Molecule {idx}")
         rdkit_mol.SetProp("Charge", str(a_mol.charge))
         rdkit_mol.SetProp("SpinMultiplicity", str(a_mol.spin_multiplicity))
-        rdkit_mol = set_radical_electrons(rdkit_mol)
+        rdkit_mol = set_radical_electrons(rdkit_mol, a_mol.charge)
 
         # Plot molecule to PDF
         plot_molecule_to_pdf(rdkit_mol, output_filename, a_mol.charge)
