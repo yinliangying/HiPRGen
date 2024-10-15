@@ -153,7 +153,7 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
     # Load pickle file
     with open(pickle_path, 'rb') as f:
         f_data = pickle.load(f)
-
+    smiles_fp_out= open(os.path.join(output_dir, "smiles.txt"), "w")
     # Process each molecule in the pickle file
     for idx, a_mol_info in enumerate(f_data):
         # Create XYZ file
@@ -185,6 +185,12 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
 
         # Remove temporary XYZ file
         os.remove(xyz_filename)
+
+        smiles= Chem.MolToSmiles(rdkit_mol)
+        try:
+            smiles_fp_out.write(f"{idx}\t{smiles}\t{a_mol.charge}\n")
+        except:
+            pass
 
     print(f"Processed {len(f_data)} molecules. Images saved in '{output_dir}' directory.")
 
