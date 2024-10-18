@@ -116,7 +116,7 @@ def obmol_to_rdkit_mol(obmol):
     return rdkit_mol
 
 
-def set_radical_electrons(rd_mol, mol_charge):
+def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
 
     star_atom_num=0
@@ -129,8 +129,7 @@ def set_radical_electrons(rd_mol, mol_charge):
         if actual_valence < typical_valence:
             star_atom_num+=1
             continue
-    print(f"{mol_charge}\t{star_atom_num}")
-    return rd_mol
+
     if (mol_charge==0 and star_atom_num ==1 ) or (abs(mol_charge)==star_atom_num): #这些情况下电荷和和自由基能够无歧义分配
         if mol_charge==0 and star_atom_num ==1:
             for idx, atom in enumerate(rd_mol.GetAtoms()):
@@ -142,9 +141,10 @@ def set_radical_electrons(rd_mol, mol_charge):
                 if actual_valence < typical_valence:
                     rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(int(typical_valence-actual_valence))
                     break
+            return rd_mol,True
         else:
             if (mol_charge == 0 and star_atom_num == 0):
-                return rd_mol
+                return rd_mol,True
             else:
                 charge_sign = -1 if mol_charge < 0 else 1
                 for idx, atom in enumerate(rd_mol.GetAtoms()):
@@ -155,26 +155,26 @@ def set_radical_electrons(rd_mol, mol_charge):
                     actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
                     if actual_valence < typical_valence:
                         rd_mol.GetAtomWithIdx(idx).SetFormalCharge(charge_sign)
-
+                return rd_mol,True
 
     else:
-        for idx, atom in enumerate(rd_mol.GetAtoms()):
-            atom_num = atom.GetAtomicNum()
-            if atom_num == 3:
-                continue
-            typical_valence = Chem.GetPeriodicTable().GetDefaultValence(atom.GetAtomicNum())
-            actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
-            if actual_valence < typical_valence:
-                radical_charge_on_atom = int(typical_valence - actual_valence)
-                if abs_mol_charge != 0:
-                    radical_charge_append = min(radical_charge_on_atom, abs_mol_charge)
-                    radical_charge_on_atom = radical_charge_on_atom - radical_charge_append
-                    abs_mol_charge = abs_mol_charge - radical_charge_append
-                rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(radical_charge_on_atom)
-                if atom_num == 6:
-                    rd_mol.GetAtomWithIdx(idx).SetProp('atomLabel', 'C')
+        return rd_mol,False
+        # for idx, atom in enumerate(rd_mol.GetAtoms()):
+        #     atom_num = atom.GetAtomicNum()
+        #     if atom_num == 3:
+        #         continue
+        #     typical_valence = Chem.GetPeriodicTable().GetDefaultValence(atom.GetAtomicNum())
+        #     actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
+        #     if actual_valence < typical_valence:
+        #         radical_charge_on_atom = int(typical_valence - actual_valence)
+        #         if abs_mol_charge != 0:
+        #             radical_charge_append = min(radical_charge_on_atom, abs_mol_charge)
+        #             radical_charge_on_atom = radical_charge_on_atom - radical_charge_append
+        #             abs_mol_charge = abs_mol_charge - radical_charge_append
+        #         rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(radical_charge_on_atom)
+        #         if atom_num == 6:
+        #             rd_mol.GetAtomWithIdx(idx).SetProp('atomLabel', 'C')
 
-    return rd_mol
 
 
 def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
@@ -219,7 +219,7 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
         rdkit_mol.SetProp("_Name", f"Molecule {idx}")
         rdkit_mol.SetProp("Charge", str(a_mol.charge))
         rdkit_mol.SetProp("SpinMultiplicity", str(a_mol.spin_multiplicity))
-        rdkit_mol = set_radical_electrons(rdkit_mol, a_mol.charge)
+        rdkit_mol,well_difine = set_radical_electrons(rdkit_mol, a_mol.charge)
 
         # Plot molecule to PDF
         plot_molecule_to_pdf(rdkit_mol, output_filename, a_mol.charge)
@@ -229,7 +229,8 @@ def mol_pkl_2_mol_pics(pickle_path: str, output_dir: str = "molecule_images"):
 
         smiles= Chem.MolToSmiles(rdkit_mol)
         try:
-            smiles_fp_out.write(f"{idx}\t{smiles}\t{a_mol.charge}\n")
+            if well_difine:
+                smiles_fp_out.write(f"{idx}\t{smiles}\n")
         except:
             pass
 
