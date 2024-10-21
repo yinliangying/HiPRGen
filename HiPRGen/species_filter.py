@@ -2,7 +2,7 @@ from HiPRGen.mol_entry import MoleculeEntry
 import pickle
 from HiPRGen.species_questions import run_decision_tree
 from HiPRGen.constants import Terminal
-from HiPRGen.logging import log_message
+from HiPRGen.llogging import log_message
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
 from HiPRGen.report_generator import ReportGenerator

@@ -1,7 +1,7 @@
 import networkx as nx
 from copy import deepcopy
 from pathlib import Path
-from HiPRGen.logging import log_message
+from HiPRGen.llogging import log_message
 
 atom_colors = {
     "H": "gray",

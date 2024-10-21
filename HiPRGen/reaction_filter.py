@@ -2,7 +2,7 @@ from mpi4py import MPI
 from itertools import permutations, product
 from HiPRGen.report_generator import ReportGenerator
 from time import time
-from HiPRGen.logging import log_message
+from HiPRGen.logging import llog_message
 import sqlite3
 from enum import Enum
 from math import floor
