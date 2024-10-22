@@ -11,7 +11,7 @@ from ase.db import connect
 from ase import Atoms
 from ase.symbols import symbols2numbers
 from openbabel import openbabel
-from ..HiPRGen.mol_pkl_2_mol_pics import xyz_2_db_mol,obmol_to_rdkit_mol
+from HiPRGen.mol_pkl_2_mol_pics import xyz_2_db_mol,obmol_to_rdkit_mol
 import pandas as pd
 import sqlite3
 import os
@@ -94,7 +94,9 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
             os.remove(xyz_filename)
 
             smiles= Chem.MolToSmiles(rdkit_mol)
-
+            smiles=Chem.MolToSmiles(Chem.MolFromSmiles(smiles))
+            if smiles=="" or None:
+                continue
             print(f"{idx},{smiles},{0 if well_define==False else 1}",file=fp_out)
 
 
@@ -171,7 +173,7 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
                 print(f"error:{number_of_reactants},{number_of_products} {reaction_id}")
                 continue
 
-            print(f"{reaction_id},{rxn_smarts}")
+            print(f"{reaction_id},{rxn_smarts}",file=fp_out)
 
 
 
@@ -181,7 +183,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
     rxn_mapper = RXNMapper()
     rxn_df = pd.read_csv(rxn_smarts_file)
     batch_size=32
-    rxn_smarts_no_H_batch_list=[]
+    rxn_smarts_batch_list=[]
     rxn_id_batch_list=[]
 
     with open( mapped_rxn_smarts_output_file, "w") as fp_out:
@@ -189,56 +191,26 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
         for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
             rxn_smarts = row["rxn_smarts"]
             reaction_id= row["reaction_id"]
-            reactant_str, product_str = rxn_smarts.split(">>")
-            reactant_list= reactant_str.split(".")
-            product_list= product_str.split(".")
 
-            reactant_list_no_H=[]
-            product_list_no_H=[]
-            try:
-                for reactant_smiles in reactant_list:
-                    reactant_smiles_no_H= Chem.MolToSmiles(Chem.MolFromSmiles(reactant_smiles))
-                    if reactant_smiles_no_H=="":
-                        print(f"error:{reactant_smiles}")
-                        raise Exception
-                    else:
-                        reactant_list_no_H.append(reactant_smiles_no_H)
-                reactant_str_no_H=".".join(reactant_list_no_H)
-
-                for product_smiles in product_list:
-                    product_smiles_no_H= Chem.MolToSmiles(Chem.MolFromSmiles(product_smiles))
-                    if product_smiles_no_H=="":
-                        print(f"error:{product_smiles}")
-                        raise Exception
-                    else:
-                        product_list_no_H.append(product_smiles_no_H)
-                product_str_no_H=".".join(product_list_no_H)
-                rxn_smarts_no_H= f"{reactant_str_no_H}>>{product_str_no_H}"
-            except:
-                continue
 
             rxn_id_batch_list.append(reaction_id)
-            rxn_smarts_no_H_batch_list.append(rxn_smarts_no_H)
+            rxn_smarts_batch_list.append(rxn_smarts)
 
             if len(rxn_id_batch_list)==batch_size:
-                results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_no_H_batch_list)
+                results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
                 for i, result in enumerate(results):
                     rxn_id=rxn_id_batch_list[i]
-                    rxn_smarts_no_H=rxn_smarts_no_H_batch_list[i]
-
-
+                    rxn_smarts_no_H=rxn_smarts_batch_list[i]
                     try:
                         mapped_rxn=result["mapped_rxn"]
                         confidence=result["confidence"]
                     except:
                         print(f"error:{rxn_id}")
                         continue
-
-
-                    print(f"{rxn_id},{mapped_rxn}")
+                    print(f"{rxn_id},{mapped_rxn}",file=fp_out)
 
             rxn_id_batch_list=[]
-            rxn_smarts_no_H_batch_list=[]
+            rxn_smarts_batch_list=[]
 
 
 
@@ -246,7 +218,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
 
 def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
     from MechFinder import MechFinder
-    finder = MechFinder(collection_dir='collections')
+    finder = MechFinder(collection_dir='MechFinder/collections')
 
     df=pd.read_csv(mapped_rxn_smarts_file)
 
@@ -259,7 +231,7 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
             except:
                 continue
-            print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}")
+            print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
 
 if __name__ == "__main__":
 
