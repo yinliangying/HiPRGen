@@ -244,7 +244,9 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
             except:
                 continue
-            print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
+            if not isinstance(finder.check_exception(MT_class), str):
+                if MT_class!="mechanism not in collection":
+                    print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
 
 if __name__ == "__main__":
 
