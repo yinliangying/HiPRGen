@@ -295,7 +295,7 @@ def find_mol(smiles_csv_file:str):
                 if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and \
                     count_elements_dict["F"]==2:
                     print(f"{mol_id},{smiles},{well_define}")
-                    draw_molecule(smiles,f"{data_dir}{mol_id}.png")
+                    draw_molecule(smiles,f"{data_dir}tmp/{mol_id}.png")
             except:
                 continue
 
