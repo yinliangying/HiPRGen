@@ -267,6 +267,21 @@ def count_elements(mol):
             element_counts[symbol] = 1
     return element_counts
 
+
+
+def draw_molecule(smiles, filename="molecule.png"):
+    """
+    从 SMILES 字符串绘制分子结构图并保存为图片文件。
+
+    参数:
+    smiles (str): 分子的 SMILES 表示
+    filename (str): 保存图片的文件名，默认为 "molecule.png"
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    img = Draw.MolToImage(mol)
+    img.save(filename)
+
+
 def find_mol(smiles_csv_file:str):
     df=pd.read_csv(smiles_csv_file)
     for i,row in tqdm(df.iterrows(),total=df.shape[0]):
@@ -280,6 +295,7 @@ def find_mol(smiles_csv_file:str):
                 if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and \
                     count_elements_dict["F"]==2:
                     print(f"{mol_id},{smiles},{well_define}")
+                    draw_molecule(smiles,f"{data_dir}{mol_id}.png")
             except:
                 continue
 
