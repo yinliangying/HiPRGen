@@ -276,10 +276,12 @@ def find_mol(smiles_csv_file:str):
         mol=Chem.MolFromSmiles(smiles)
         if mol:
             count_elements_dict=count_elements(mol)
-
-            if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and \
+            try:
+                if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and \
                     count_elements_dict["F"]==2:
-                print(f"{mol_id},{smiles},{well_define}")
+                    print(f"{mol_id},{smiles},{well_define}")
+            except:
+                continue
 
 
 if __name__ == "__main__":
