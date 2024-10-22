@@ -16,6 +16,7 @@ import pandas as pd
 import sqlite3
 import os
 from tqdm import tqdm
+from rdkit.Chem.Draw import ReactionToImage
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -281,6 +282,75 @@ def draw_molecule(smiles, filename="molecule.png"):
     img = Draw.MolToImage(mol)
     img.save(filename)
 
+def draw_reaction(rxn_smarts, filename="reaction.png"):
+    rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
+    img = ReactionToImage(rxn)
+    img.save(filename)
+
+def find_reaction(smi_csv_path: str,rn_db_path: str):
+    id_smiles_dict = {}
+    smiles_id_dict = {}
+    smi_df = pd.read_csv(smi_csv_path)
+    for i, row in tqdm(smi_df.iterrows(), total=smi_df.shape[0]):
+        mol_id = int(row["idx"])
+        smiles = row["smiles"]
+        id_smiles_dict[mol_id] = smiles
+        smiles_id_dict[smiles] = mol_id
+
+
+    rn_con = sqlite3.connect(rn_db_path)
+    rn_cur = rn_con.cursor()
+
+    rn_cur.execute(
+        f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2 from "
+        f"reactions where  number_of_reactants=2 and number_of_products=1 and  product_1=13203 and (reactant_1=13590 or reactant_2=13590)")
+
+    for row in tqdm(rn_cur):
+        reaction_id = row[0]
+        number_of_reactants = int(row[1])
+        number_of_products = int(row[2])
+
+        reactant_1 = int(row[3])
+        reactant_2 = int(row[4])
+        product_1 = int(row[5])
+        product_2 = int(row[6])
+
+        try:
+            reactant_1_smiles = id_smiles_dict[reactant_1]
+        except:
+            continue
+        if number_of_reactants == 2:
+            try:
+                reactant_2_smiles = id_smiles_dict[reactant_2]
+            except:
+                continue
+        else:
+            reactant_2_smiles = ""
+        try:
+            product_1_smiles = id_smiles_dict[product_1]
+        except:
+            continue
+        if number_of_products == 2:
+            try:
+                product_2_smiles = id_smiles_dict[product_2]
+            except:
+                continue
+        else:
+            product_2_smiles = ""
+        if number_of_reactants == 2 and number_of_products == 2:
+            rxn_smarts = f"{reactant_1_smiles}.{reactant_2_smiles}>>{product_1_smiles}.{product_2_smiles}"
+        elif number_of_reactants == 2 and number_of_products == 1:
+            rxn_smarts = f"{reactant_1_smiles}.{reactant_2_smiles}>>{product_1_smiles}"
+        elif number_of_reactants == 1 and number_of_products == 2:
+            rxn_smarts = f"{reactant_1_smiles}>>{product_1_smiles}.{product_2_smiles}"
+        elif number_of_reactants == 1 and number_of_products == 1:
+            rxn_smarts = f"{reactant_1_smiles}>>{product_1_smiles}"
+        else:
+            print(f"error:{number_of_reactants},{number_of_products} {reaction_id}")
+            continue
+
+        print(f"{reaction_id},{rxn_smarts}" )
+        draw_reaction(rxn_smarts, f"{data_dir}tmp/{reaction_id}.png")
 
 def find_mol(smiles_csv_file:str):
     df=pd.read_csv(smiles_csv_file)
@@ -292,8 +362,8 @@ def find_mol(smiles_csv_file:str):
         if mol:
             count_elements_dict=count_elements(mol)
             try:
-                if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and \
-                    count_elements_dict["F"]==2:
+                #if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and count_elements_dict["F"]==2:
+                if count_elements_dict["C"]==7 and count_elements_dict["O"]==1 and count_elements_dict["F"]==1:
                     print(f"{mol_id},{smiles},{well_define}")
                     draw_molecule(smiles,f"{data_dir}tmp/{mol_id}.png")
             except:
@@ -307,7 +377,8 @@ if __name__ == "__main__":
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
-    find_mol(f"{data_dir}smiles.csv")
+    #find_mol(f"{data_dir}smiles.csv")
+    find_reaction(f"{data_dir}smiles.csv",f"{data_dir}rn.sqlite")
 
     # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
