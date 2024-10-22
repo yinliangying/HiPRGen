@@ -248,6 +248,40 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
                 if MT_class!="mechanism not in collection":
                     print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
 
+def count_elements(mol):
+    """
+    统计分子中各类元素的数量。
+
+    参数:
+    mol (rdkit.Chem.Mol): RDKit 分子对象
+
+    返回:
+    dict: 元素及其对应的数量
+    """
+    element_counts = {}
+    for atom in mol.GetAtoms():
+        symbol = atom.GetSymbol()
+        if symbol in element_counts:
+            element_counts[symbol] += 1
+        else:
+            element_counts[symbol] = 1
+    return element_counts
+
+def find_mol(smiles_csv_file:str):
+    df=pd.read_csv(smiles_csv_file)
+    for i,row in tqdm(df.iterrows(),total=df.shape[0]):
+        smiles=row["smiles"]
+        well_define=row["well_define"]
+        mol_id=row["idx"]
+        mol=Chem.MolFromSmiles(smiles)
+        if mol:
+            count_elements_dict=count_elements(mol)
+
+            if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and \
+                    count_elements_dict["F"]==2:
+                print(f"{mol_id},{smiles},{well_define}")
+
+
 if __name__ == "__main__":
 
 
@@ -255,12 +289,12 @@ if __name__ == "__main__":
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
-    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    find_mol(f"{data_dir}smiles.csv")
 
-
-    trans_rxn_db2smarts(f"{data_dir}smiles.csv",
-                        rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
-                        rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
-    mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
-    apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
+    # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
+    #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
+    #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
+    # mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
+    # apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
 
