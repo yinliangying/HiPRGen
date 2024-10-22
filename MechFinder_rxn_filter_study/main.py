@@ -203,7 +203,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
                 results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
                 for i, result in enumerate(results):
                     rxn_id=rxn_id_batch_list[i]
-                    rxn_smarts_no_H=rxn_smarts_batch_list[i]
+                    rxn_smarts=rxn_smarts_batch_list[i]
                     try:
                         mapped_rxn=result["mapped_rxn"]
                         confidence=result["confidence"]
@@ -215,7 +215,17 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
                 rxn_id_batch_list=[]
                 rxn_smarts_batch_list=[]
 
-
+        results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
+        for i, result in enumerate(results):
+            rxn_id = rxn_id_batch_list[i]
+            rxn_smarts = rxn_smarts_batch_list[i]
+            try:
+                mapped_rxn = result["mapped_rxn"]
+                confidence = result["confidence"]
+            except:
+                print(f"error:{rxn_id}")
+                continue
+            print(f"{rxn_id},{mapped_rxn}", file=fp_out)
 
 
 
