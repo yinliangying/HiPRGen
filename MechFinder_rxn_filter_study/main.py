@@ -378,7 +378,7 @@ if __name__ == "__main__":
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
     #find_mol(f"{data_dir}smiles.csv")
-    find_reaction(f"{data_dir}smiles.csv",f"{data_dir}rn.sqlite")
+    find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
     # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
