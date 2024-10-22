@@ -212,8 +212,8 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
                         continue
                     print(f"{rxn_id},{mapped_rxn}",file=fp_out)
 
-            rxn_id_batch_list=[]
-            rxn_smarts_batch_list=[]
+                rxn_id_batch_list=[]
+                rxn_smarts_batch_list=[]
 
 
 
