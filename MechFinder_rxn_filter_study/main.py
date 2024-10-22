@@ -263,17 +263,21 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mol_entries", help=" ", type=str,
-                         required=True)
-    args = parser.parse_args()
-    mol_entries_file=args.mol_entries
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("-m", "--mol_entries", help=" ", type=str,
+    #                      required=True)
+    # args = parser.parse_args()
+    # mol_entries_file=args.mol_entries
 
-    output_smi_csv_path="smiles.csv"
-    filter_mol_entries(mol_entries_file, output_smi_csv_path)
-    trans_rxn_db2smarts(output_smi_csv_path,
+    data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
+    mol_entries_file=f"{data_dir}mol_entries.pickle"
+
+    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+
+
+    trans_rxn_db2smarts(f"{data_dir}smiles.csv",
                         rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
-                        rxn_smarts_output_file="rxn_smarts.csv")
-    mapping_rxn("rxn_smarts.csv","rxn_smarts_mapped.csv")
-    apply_MechFinder("rxn_smarts_mapped.csv","rxn_smarts_mapped_mech.csv")
+                        rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
+    mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
+    apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
 
