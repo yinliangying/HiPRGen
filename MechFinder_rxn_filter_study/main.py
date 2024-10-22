@@ -94,8 +94,11 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
             os.remove(xyz_filename)
 
             smiles= Chem.MolToSmiles(rdkit_mol)
-            smiles=Chem.MolToSmiles(Chem.MolFromSmiles(smiles))
-            if smiles=="" or None:
+            try:
+                smiles=Chem.MolToSmiles(Chem.MolFromSmiles(smiles))
+                if smiles=="" or None:
+                    continue
+            except:
                 continue
             print(f"{idx},{smiles},{0 if well_define==False else 1}",file=fp_out)
 
