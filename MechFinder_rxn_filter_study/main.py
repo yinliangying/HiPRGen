@@ -125,10 +125,10 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
     rn_con = sqlite3.connect(rn_db_path)
     rn_cur = rn_con.cursor()
 
-    sql_limit = 10000000
+    sql_limit = 1000000
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2 from "
-        f"reactions where reaction_id%100=0 limit {sql_limit}")
+        f"reactions where reaction_id%1000=0 limit {sql_limit}")
 
     with open(rxn_smarts_output_file, "w") as fp_out:
         print("reaction_id,rxn_smarts",file=fp_out)
@@ -250,11 +250,7 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
 
 if __name__ == "__main__":
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("-m", "--mol_entries", help=" ", type=str,
-    #                      required=True)
-    # args = parser.parse_args()
-    # mol_entries_file=args.mol_entries
+
 
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
