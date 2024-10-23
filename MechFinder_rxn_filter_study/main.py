@@ -290,8 +290,19 @@ def draw_reaction(rxn_smarts, filename="reaction.png"):
     # img.save(filename)
 
     reactant_str, product_str = rxn_smarts.split(">>")
-    reactant_1, reactant_2 = reactant_str.split(".")
-    product_1, product_2 = product_str.split(".")
+
+    reactant_list = reactant_str.split(".")
+    reactant_1=reactant_list[0]
+    if len(reactant_list)==2:
+        reactant_2=reactant_list[1]
+    else:
+        reactant_2=""
+    product_list = product_str.split(".")
+    product_1=product_list[0]
+    if len(product_list)==2:
+        product_2=product_list[1]
+    else:
+        product_2=""
     smiles_list = [reactant_1, reactant_2,"", product_1, product_2]
     mode=None
     pil_img_list=[]
