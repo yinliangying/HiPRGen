@@ -246,12 +246,14 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
     result_info_dict={}
     with open(mech_output_file, "w") as fp_out:
         print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
-        for i,row in tqdm(df.iterrows(),total=df.shape[0]):
+        for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
+            if i%1000==0:
+                print(result_info_dict)
 
             rxn_id=row["reaction_id"]
             rxn_str = row["mapped_rxn"]
             draw_reaction(rxn_str, f"{output_dir}/{i}.png")
-            print(rxn_id,rxn_str)
+            #print(rxn_id,rxn_str)
             try:
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
             except:
