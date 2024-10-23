@@ -262,6 +262,7 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
         shutil.rmtree(output_dir)
     os.mkdir(output_dir)
 
+    result_info_dict={}
     with open(mech_output_file, "w") as fp_out:
         print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
         for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
