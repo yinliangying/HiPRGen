@@ -21,7 +21,7 @@ import shutil
 from PIL import Image, ImageDraw, ImageFont
 from rxnmapper import RXNMapper
 from MechFinder import MechFinder
-
+import traceback
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -256,7 +256,9 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
             #print(rxn_id,rxn_str)
             try:
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
-            except:
+            except Exception as e :
+                print(e)
+                traceback.print_exc()
                 if "except" not in result_info_dict:
                     result_info_dict["except"]=0
                 result_info_dict["except"]+=1
