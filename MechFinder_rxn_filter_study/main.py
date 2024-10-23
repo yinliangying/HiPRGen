@@ -324,7 +324,7 @@ def draw_reaction(rxn_smarts, filename="reaction.png"):
     for img_idx, img in enumerate(pil_img_list):
         if img is None:
             continue
-        result.paste(img, (0, height_mol * img_idx))
+        result.paste(img, (width_mol*img_idx, 0))
 
     # 保存拼接后的图片
     result.save(filename)
