@@ -19,9 +19,6 @@ from tqdm import tqdm
 from rdkit.Chem.Draw import ReactionToImage
 import shutil
 from PIL import Image, ImageDraw, ImageFont
-from rxnmapper import RXNMapper
-from MechFinder import MechFinder
-import traceback
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -188,7 +185,7 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
 
 
 def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
-
+    from rxnmapper import RXNMapper
     rxn_mapper = RXNMapper()
     rxn_df = pd.read_csv(rxn_smarts_file)
     batch_size=32
@@ -233,8 +230,30 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
                 continue
             print(f"{rxn_id},{mapped_rxn}", file=fp_out)
 
-def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
 
+
+
+# def apply_MechFinder_test(mapped_rxn_smarts_file: str ):
+#     from MechFinder import MechFinder
+#     finder = MechFinder(collection_dir='MechFinder/collections')
+#
+#     df=pd.read_csv(mapped_rxn_smarts_file)
+#
+#     print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path")
+#     for i,row in tqdm(df.iterrows(),total=df.shape[0]):
+#         rxn_id= ""
+#         rxn_str = row["reaction"]
+#         try:
+#             updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
+#         except:
+#             continue
+#         if not isinstance(finder.check_exception(MT_class), str):
+#             if MT_class!="mechanism not in collection":
+#                 print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}" )
+
+
+def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
+    from MechFinder import MechFinder
     finder = MechFinder(collection_dir='MechFinder/collections')
     df=pd.read_csv(mapped_rxn_smarts_file)
 
@@ -243,34 +262,23 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
         shutil.rmtree(output_dir)
     os.mkdir(output_dir)
 
-    result_info_dict={}
     with open(mech_output_file, "w") as fp_out:
         print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
-        for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
-            if i%1000==0:
-                print(result_info_dict)
-
+        for i,row in tqdm(df.iterrows(),total=df.shape[0]):
+            if i>3:
+                break
             rxn_id=row["reaction_id"]
             rxn_str = row["mapped_rxn"]
             draw_reaction(rxn_str, f"{output_dir}/{i}.png")
-            #print(rxn_id,rxn_str)
+            print(rxn_id,rxn_str)
             try:
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
-            except Exception as e :
-                if "except" not in result_info_dict:
-                    result_info_dict["except"]=0
-                result_info_dict["except"]+=1
+            except:
                 continue
-
-            if MT_class not in result_info_dict:
-                result_info_dict[MT_class] = 0
-            result_info_dict[MT_class] += 1
             if not isinstance(finder.check_exception(MT_class), str):
                 if MT_class!="mechanism not in collection":
                     print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
 
-
-        print(result_info_dict)
 def count_elements(mol):
     """
     统计分子中各类元素的数量。
