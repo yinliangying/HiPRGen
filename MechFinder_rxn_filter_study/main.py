@@ -18,6 +18,7 @@ import os
 from tqdm import tqdm
 from rdkit.Chem.Draw import ReactionToImage
 import shutil
+from PIL import Image, ImageDraw, ImageFont
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -284,15 +285,46 @@ def draw_molecule(smiles, filename="molecule.png"):
     img.save(filename)
 
 def draw_reaction(rxn_smarts, filename="reaction.png"):
-    rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
-    img = ReactionToImage(rxn)
-    img.save(filename)
+    # rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
+    # img = ReactionToImage(rxn)
+    # img.save(filename)
+
+    reactant_str, product_str = rxn_smarts.split(">>")
+    reactant_1, reactant_2 = reactant_str.split(".")
+    product_1, product_2 = product_str.split(".")
+    smiles_list = [reactant_1, reactant_2,"", product_1, product_2]
+    mode=None
+    pil_img_list=[]
+    for idx, smiles in enumerate(smiles_list):
+        if smiles == "":
+            img=None
+        else:
+            mol = Chem.MolFromSmiles(smiles)
+            img = Draw.MolToImage(mol)
+            mode=img.mode
+        pil_img_list.append(img)
+
+    height_mol = 300
+    width_mol = 300
+    # 创建一个空白画布，用于拼接图片
+    result = Image.new(mode, (width_mol*5, height_mol), color=(255, 255, 255))  #
+
+    # 在画布上拼接图片
+    for img_idx, img in enumerate(pil_img_list):
+        if img is None:
+            continue
+        result.paste(img, (0, height_mol * img_idx))
+
+    # 保存拼接后的图片
+    result.save(filename)
+
 
 def find_reaction(smi_csv_path: str,rn_db_path: str):
 
     output_dir=f"{data_dir}tmp_rxn"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
 
     id_smiles_dict = {}
     smiles_id_dict = {}
@@ -309,7 +341,7 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
 
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2 from "
-        f"reactions where  number_of_reactants=2 and number_of_products=1 and  product_1=13203 and (reactant_1=13590 or reactant_2=13590)")
+        f"reactions where  number_of_reactants=2 and number_of_products=1 and  product_1=13203 ") #and (reactant_1=13590 or reactant_2=13590)
 
     for row in tqdm(rn_cur):
         reaction_id = row[0]
