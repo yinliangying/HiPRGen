@@ -232,17 +232,45 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
 
 
 
+
+# def apply_MechFinder_test(mapped_rxn_smarts_file: str ):
+#     from MechFinder import MechFinder
+#     finder = MechFinder(collection_dir='MechFinder/collections')
+#
+#     df=pd.read_csv(mapped_rxn_smarts_file)
+#
+#     print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path")
+#     for i,row in tqdm(df.iterrows(),total=df.shape[0]):
+#         rxn_id= ""
+#         rxn_str = row["reaction"]
+#         try:
+#             updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
+#         except:
+#             continue
+#         if not isinstance(finder.check_exception(MT_class), str):
+#             if MT_class!="mechanism not in collection":
+#                 print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}" )
+
+
 def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
     from MechFinder import MechFinder
     finder = MechFinder(collection_dir='MechFinder/collections')
-
     df=pd.read_csv(mapped_rxn_smarts_file)
+
+    output_dir=f"{data_dir}tmp_rxn"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
 
     with open(mech_output_file, "w") as fp_out:
         print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
         for i,row in tqdm(df.iterrows(),total=df.shape[0]):
+            if i>3:
+                break
             rxn_id=row["reaction_id"]
             rxn_str = row["mapped_rxn"]
+            draw_reaction(rxn_str, f"{output_dir}/{i}.png")
+            print(rxn_id,rxn_str)
             try:
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
             except:
@@ -428,12 +456,13 @@ if __name__ == "__main__":
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
     #find_mol(f"{data_dir}smiles.csv")
-    find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
+    #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
     # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
     # mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
-    # apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
+    apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
 
+    #apply_MechFinder_test(f"MechFinder/data/samples.csv")
