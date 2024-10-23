@@ -261,20 +261,14 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
                     result_info_dict["except"]=0
                 result_info_dict["except"]+=1
                 continue
+
+            if MT_class not in result_info_dict:
+                result_info_dict[MT_class] = 0
+            result_info_dict[MT_class] += 1
             if not isinstance(finder.check_exception(MT_class), str):
-
-                if MT_class not in result_info_dict:
-                    result_info_dict[MT_class]=0
-                result_info_dict[MT_class]+=1
-
                 if MT_class!="mechanism not in collection":
                     print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
 
-            else:
-                if "error" not in result_info_dict:
-                    result_info_dict["error"] = 0
-                result_info_dict["error"] += 1
-                continue
 
         print(result_info_dict)
 def count_elements(mol):
