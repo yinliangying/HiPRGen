@@ -17,6 +17,7 @@ import sqlite3
 import os
 from tqdm import tqdm
 from rdkit.Chem.Draw import ReactionToImage
+import shutil
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -43,10 +44,10 @@ def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
                 if actual_valence < typical_valence:
                     rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(int(typical_valence-actual_valence))
                     break
-            return rd_mol,True
+            return rd_mol,True,star_atom_num
         else:
             if (mol_charge == 0 and star_atom_num == 0):
-                return rd_mol,True
+                return rd_mol,True,star_atom_num
             else:
                 charge_sign = -1 if mol_charge < 0 else 1
                 for idx, atom in enumerate(rd_mol.GetAtoms()):
@@ -57,10 +58,10 @@ def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
                     actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
                     if actual_valence < typical_valence:
                         rd_mol.GetAtomWithIdx(idx).SetFormalCharge(charge_sign)
-                return rd_mol,True
+                return rd_mol,True,star_atom_num
 
     else:
-        return rd_mol,False
+        return rd_mol,False,star_atom_num
 def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
     """
     过滤分子，区分哪些分子的缺键原子是完全可标注的（目前只考察这类分子） 大约1/2
@@ -70,7 +71,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
         f_data = pickle.load(f)
 
     with open(output_smi_csv_path,"w") as fp_out:
-        print("idx,smiles,well_define",file=fp_out)
+        print("idx,smiles,well_define,mol_charge,star_atom_num",file=fp_out)
         for idx, a_mol_info in enumerate(f_data):
             # Create XYZ file
             a_mol = a_mol_info.molecule
@@ -89,7 +90,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
             rdkit_mol.SetProp("_Name", f"Molecule {idx}")
             rdkit_mol.SetProp("Charge", str(a_mol.charge))
             rdkit_mol.SetProp("SpinMultiplicity", str(a_mol.spin_multiplicity))
-            rdkit_mol,well_define = set_radical_electrons(rdkit_mol, a_mol.charge)
+            rdkit_mol,well_define,star_atom_num = set_radical_electrons(rdkit_mol, a_mol.charge)
 
             # Remove temporary XYZ file
             os.remove(xyz_filename)
@@ -101,7 +102,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
                     continue
             except:
                 continue
-            print(f"{idx},{smiles},{0 if well_define==False else 1}",file=fp_out)
+            print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num}",file=fp_out)
 
 
 
@@ -288,6 +289,11 @@ def draw_reaction(rxn_smarts, filename="reaction.png"):
     img.save(filename)
 
 def find_reaction(smi_csv_path: str,rn_db_path: str):
+
+    output_dir=f"{data_dir}tmp_rxn"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+
     id_smiles_dict = {}
     smiles_id_dict = {}
     smi_df = pd.read_csv(smi_csv_path)
@@ -349,8 +355,9 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
             print(f"error:{number_of_reactants},{number_of_products} {reaction_id}")
             continue
 
-        print(f"{reaction_id},{rxn_smarts}" )
-        draw_reaction(rxn_smarts, f"{data_dir}tmp/{reaction_id}.png")
+        rxn_id_rxn_str=f"{reactant_1}.{reactant_2}>>{product_1}.{product_2}"
+        print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}" )
+        draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{rxn_id_rxn_str}.png")
 
 def find_mol(smiles_csv_file:str):
     df=pd.read_csv(smiles_csv_file)
