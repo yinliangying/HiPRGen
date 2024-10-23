@@ -243,6 +243,7 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
         shutil.rmtree(output_dir)
     os.mkdir(output_dir)
 
+    result_info_dict={}
     with open(mech_output_file, "w") as fp_out:
         print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
         for i,row in tqdm(df.iterrows(),total=df.shape[0]):
@@ -254,11 +255,26 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
             try:
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
             except:
+                if "except" not in result_info_dict:
+                    result_info_dict["except"]=0
+                result_info_dict["except"]+=1
                 continue
             if not isinstance(finder.check_exception(MT_class), str):
+
+                if MT_class not in result_info_dict:
+                    result_info_dict[MT_class]=0
+                result_info_dict[MT_class]+=1
+
                 if MT_class!="mechanism not in collection":
                     print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
 
+            else:
+                if "error" not in result_info_dict:
+                    result_info_dict["error"] = 0
+                result_info_dict["error"] += 1
+                continue
+
+        print(result_info_dict)
 def count_elements(mol):
     """
     统计分子中各类元素的数量。
@@ -445,46 +461,46 @@ def find_mol(smiles_csv_file:str):
 #             if MT_class!="mechanism not in collection":
 #                 print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}" )
 
-def mapping_mechfinder_test(rxn_smarts_file: str):
-    output_dir=f"{data_dir}tmp_rxn"
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    os.mkdir(output_dir)
-
-
-
-    rxn_mapper = RXNMapper()
-    rxn_df = pd.read_csv(rxn_smarts_file)
-
-    finder = MechFinder(collection_dir='MechFinder/collections')
-
-    for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
-        if i%100==0:
-            pass
-        else:
-            continue
-        rxn_smarts = row["rxn_smarts"]
-        reaction_id= row["reaction_id"]
-
-
-        results = rxn_mapper.get_attention_guided_atom_maps([rxn_smarts])
-        try:
-            mapped_rxn=results[0]["mapped_rxn"]
-            confidence=results[0]["confidence"]
-        except:
-            print(f"{reaction_id} error")
-            continue
-        print(f"{reaction_id},{mapped_rxn}")
-
-        try:
-            updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(mapped_rxn)
-        except:
-            continue
-        if not isinstance(finder.check_exception(MT_class), str):
-            if MT_class != "mechanism not in collection":
-                print(f"{reaction_id},{mapped_rxn},{updated_reaction},{LRT},{MT_class},{electron_path}" )
-
-
+# def mapping_mechfinder_test(rxn_smarts_file: str):
+#     output_dir=f"{data_dir}tmp_rxn"
+#     if os.path.exists(output_dir):
+#         shutil.rmtree(output_dir)
+#     os.mkdir(output_dir)
+#
+#
+#
+#     rxn_mapper = RXNMapper()
+#     rxn_df = pd.read_csv(rxn_smarts_file)
+#
+#     finder = MechFinder(collection_dir='MechFinder/collections')
+#
+#     for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
+#         if i%100==0:
+#             pass
+#         else:
+#             continue
+#         rxn_smarts = row["rxn_smarts"]
+#         reaction_id= row["reaction_id"]
+#
+#
+#         results = rxn_mapper.get_attention_guided_atom_maps([rxn_smarts])
+#         try:
+#             mapped_rxn=results[0]["mapped_rxn"]
+#             confidence=results[0]["confidence"]
+#         except:
+#             print(f"{reaction_id} error")
+#             continue
+#         print(f"{reaction_id},{mapped_rxn}")
+#
+#         try:
+#             updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(mapped_rxn)
+#         except:
+#             continue
+#         if not isinstance(finder.check_exception(MT_class), str):
+#             if MT_class != "mechanism not in collection":
+#                 print(f"{reaction_id},{mapped_rxn},{updated_reaction},{LRT},{MT_class},{electron_path}" )
+#
+#
 
 if __name__ == "__main__":
 
@@ -501,7 +517,7 @@ if __name__ == "__main__":
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
     # mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
-    #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
+    apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
 
     #apply_MechFinder_test(f"MechFinder/data/samples.csv")
-    mapping_mechfinder_test(f"{data_dir}rxn_smarts.csv")
+    #mapping_mechfinder_test(f"{data_dir}rxn_smarts.csv")
