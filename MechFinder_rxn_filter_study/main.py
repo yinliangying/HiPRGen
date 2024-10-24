@@ -185,9 +185,12 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
 
 
 def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
-    os.system(f"""python atom-to-atom-mapping/scripts/map_reaction_smiles_using_local_mapper.py  
-     --input_csv_file_path {rxn_smarts_file}  
-     --reaction_smiles_column_name  rxn_smarts  
+    """
+    https://github.com/neo-chem-synth-wave/atom-to-atom-mapping
+    """
+    os.system(f"""python atom-to-atom-mapping/scripts/map_reaction_smiles_using_local_mapper.py \
+     --input_csv_file_path {rxn_smarts_file}  \
+     --reaction_smiles_column_name  rxn_smarts \ 
      --output_csv_file_path  {mapped_rxn_smarts_output_file}""")
     # from rxnmapper import RXNMapper
     # rxn_mapper = RXNMapper()
