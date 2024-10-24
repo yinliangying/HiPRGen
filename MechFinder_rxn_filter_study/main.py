@@ -185,50 +185,54 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
 
 
 def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
-    from rxnmapper import RXNMapper
-    rxn_mapper = RXNMapper()
-    rxn_df = pd.read_csv(rxn_smarts_file)
-    batch_size=32
-    rxn_smarts_batch_list=[]
-    rxn_id_batch_list=[]
-
-    with open( mapped_rxn_smarts_output_file, "w") as fp_out:
-        print("reaction_id,mapped_rxn,rxn_smarts,confidence",file=fp_out)
-        for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
-            rxn_smarts = row["rxn_smarts"]
-            reaction_id= row["reaction_id"]
-
-
-            rxn_id_batch_list.append(reaction_id)
-            rxn_smarts_batch_list.append(rxn_smarts)
-
-            if len(rxn_id_batch_list)==batch_size:
-                results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
-                for i, result in enumerate(results):
-                    rxn_id=rxn_id_batch_list[i]
-                    rxn_smarts=rxn_smarts_batch_list[i]
-                    try:
-                        mapped_rxn=result["mapped_rxn"]
-                        confidence=result["confidence"]
-                    except:
-                        print(f"error:{rxn_id}")
-                        continue
-                    print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}",file=fp_out)
-
-                rxn_id_batch_list=[]
-                rxn_smarts_batch_list=[]
-
-        results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
-        for i, result in enumerate(results):
-            rxn_id = rxn_id_batch_list[i]
-            rxn_smarts = rxn_smarts_batch_list[i]
-            try:
-                mapped_rxn = result["mapped_rxn"]
-                confidence = result["confidence"]
-            except:
-                print(f"error:{rxn_id}")
-                continue
-            print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}", file=fp_out)
+    os.system(f"""python atom-to-atom-mapping/scripts/map_reaction_smiles_using_local_mapper.py  
+     --input_csv_file_path {rxn_smarts_file}  
+     --reaction_smiles_column_name  rxn_smarts  
+     --output_csv_file_path  {mapped_rxn_smarts_output_file}""")
+    # from rxnmapper import RXNMapper
+    # rxn_mapper = RXNMapper()
+    # rxn_df = pd.read_csv(rxn_smarts_file)
+    # batch_size=32
+    # rxn_smarts_batch_list=[]
+    # rxn_id_batch_list=[]
+    #
+    # with open( mapped_rxn_smarts_output_file, "w") as fp_out:
+    #     print("reaction_id,mapped_rxn,rxn_smarts,confidence",file=fp_out)
+    #     for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
+    #         rxn_smarts = row["rxn_smarts"]
+    #         reaction_id= row["reaction_id"]
+    #
+    #
+    #         rxn_id_batch_list.append(reaction_id)
+    #         rxn_smarts_batch_list.append(rxn_smarts)
+    #
+    #         if len(rxn_id_batch_list)==batch_size:
+    #             results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
+    #             for i, result in enumerate(results):
+    #                 rxn_id=rxn_id_batch_list[i]
+    #                 rxn_smarts=rxn_smarts_batch_list[i]
+    #                 try:
+    #                     mapped_rxn=result["mapped_rxn"]
+    #                     confidence=result["confidence"]
+    #                 except:
+    #                     print(f"error:{rxn_id}")
+    #                     continue
+    #                 print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}",file=fp_out)
+    #
+    #             rxn_id_batch_list=[]
+    #             rxn_smarts_batch_list=[]
+    #
+    #     results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
+    #     for i, result in enumerate(results):
+    #         rxn_id = rxn_id_batch_list[i]
+    #         rxn_smarts = rxn_smarts_batch_list[i]
+    #         try:
+    #             mapped_rxn = result["mapped_rxn"]
+    #             confidence = result["confidence"]
+    #         except:
+    #             print(f"error:{rxn_id}")
+    #             continue
+    #         print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}", file=fp_out)
 
 
 
@@ -548,9 +552,9 @@ if __name__ == "__main__":
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
     # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
-    trans_rxn_db2smarts(f"{data_dir}smiles.csv",
-                        rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
-                        rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
+    # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
+    #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
+    #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
     mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
     apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
 
