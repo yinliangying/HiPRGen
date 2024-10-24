@@ -128,10 +128,10 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
     rn_con = sqlite3.connect(rn_db_path)
     rn_cur = rn_con.cursor()
 
-    sql_limit = 1000000
+    sql_limit = 100000
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2 from "
-        f"reactions where reaction_id%1000=0 limit {sql_limit}")
+        f"reactions where reaction_id%10000=0 limit {sql_limit}")
 
     with open(rxn_smarts_output_file, "w") as fp_out:
         print("reaction_id,rxn_smarts",file=fp_out)
@@ -193,7 +193,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
     rxn_id_batch_list=[]
 
     with open( mapped_rxn_smarts_output_file, "w") as fp_out:
-        print("reaction_id,mapped_rxn",file=fp_out)
+        print("reaction_id,mapped_rxn,rxn_smarts,confidence",file=fp_out)
         for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
             rxn_smarts = row["rxn_smarts"]
             reaction_id= row["reaction_id"]
@@ -213,7 +213,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
                     except:
                         print(f"error:{rxn_id}")
                         continue
-                    print(f"{rxn_id},{mapped_rxn}",file=fp_out)
+                    print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}",file=fp_out)
 
                 rxn_id_batch_list=[]
                 rxn_smarts_batch_list=[]
@@ -228,7 +228,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
             except:
                 print(f"error:{rxn_id}")
                 continue
-            print(f"{rxn_id},{mapped_rxn}", file=fp_out)
+            print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}", file=fp_out)
 
 
 
@@ -253,6 +253,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
 
 
 def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
+    #from rxnmapper import RXNMapper  这句话会导致MechFinder无法打印报错
     from MechFinder import MechFinder
     finder = MechFinder(collection_dir='MechFinder/collections')
     df=pd.read_csv(mapped_rxn_smarts_file)
@@ -271,11 +272,12 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
             if i>4:
                 break
             rxn_id=row["reaction_id"]
-            rxn_str = row["mapped_rxn"]
-            draw_reaction(rxn_str, f"{output_dir}/{i}.png")
-            #print(rxn_id,rxn_str)
+            mapped_rxn = row["mapped_rxn"]
+            unmapped_rxn = row["rxn_smarts"]
+            mapping_confidence=row["confidence"]
+
             try:
-                updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
+                updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(mapped_rxn)
             except Exception as e :
                 if "except" not in result_info_dict:
                     result_info_dict["except"]=0
@@ -287,8 +289,10 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
                 result_info_dict[MT_class] += 1
                 if not isinstance(finder.check_exception(MT_class), str):
                     if MT_class!="mechanism not in collection":
-                        print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
-            print(MT_class)
+                        print(f"{rxn_id},{mapped_rxn},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
+            #print(MT_class)
+            draw_reaction(mapped_rxn, f"{output_dir}/{rxn_id}.png")
+            print(f"{rxn_id},{mapped_rxn},{unmapped_rxn},{mapping_confidence},{MT_class}")
 
 def count_elements(mol):
     """
@@ -476,6 +480,22 @@ def find_mol(smiles_csv_file:str):
 #             if MT_class!="mechanism not in collection":
 #                 print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}" )
 
+def mapping_test():
+    output_dir=f"{data_dir}tmp_rxn"
+    os.mkdir(output_dir)
+
+    from rxnmapper import RXNMapper
+    rxn_mapper = RXNMapper()
+
+    rxn_smarts =  """"""
+    results = rxn_mapper.get_attention_guided_atom_maps([rxn_smarts])
+    mapped_rxn=results[0]["mapped_rxn"]
+    confidence=results[0]["confidence"]
+
+    draw_reaction(mapped_rxn, f"{output_dir}/tmp.png")
+    print(f"{confidence},{mapped_rxn},{rxn_smarts}")
+
+
 # def mapping_mechfinder_test(rxn_smarts_file: str):
 #     output_dir=f"{data_dir}tmp_rxn"
 #     if os.path.exists(output_dir):
@@ -528,10 +548,10 @@ if __name__ == "__main__":
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
     # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
-    # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
-    #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
-    #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
-    # mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
+    trans_rxn_db2smarts(f"{data_dir}smiles.csv",
+                        rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
+                        rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
+    mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
     apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
 
     #apply_MechFinder_test(f"MechFinder/data/samples.csv")
