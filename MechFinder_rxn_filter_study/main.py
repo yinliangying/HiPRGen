@@ -268,7 +268,8 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
         for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
             if i%1000==0:
                 print(result_info_dict)
-
+            if i>4:
+                break
             rxn_id=row["reaction_id"]
             rxn_str = row["mapped_rxn"]
             draw_reaction(rxn_str, f"{output_dir}/{i}.png")
