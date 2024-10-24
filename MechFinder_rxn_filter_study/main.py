@@ -190,7 +190,7 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
     """
     os.system(f"""python atom-to-atom-mapping/scripts/map_reaction_smiles_using_local_mapper.py \
      --input_csv_file_path {rxn_smarts_file}  \
-     --reaction_smiles_column_name  rxn_smarts \ 
+     --reaction_smiles_column_name  rxn_smarts \
      --output_csv_file_path  {mapped_rxn_smarts_output_file}""")
     # from rxnmapper import RXNMapper
     # rxn_mapper = RXNMapper()
