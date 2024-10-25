@@ -212,6 +212,7 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
         mapped_reaction_smiles=row["mapped_reaction_smiles"]
         mapped_reaction_template_smarts=row["mapped_reaction_template_smarts"]
         is_confident=row["is_confident"]
+        rxn_id = row["reaction_id"]
         # draw_reaction(rxn_smarts,f"{output_dir}/{i}_{is_confident}.png")
         # draw_reaction(mapped_reaction_smiles,f"{output_dir}/{i}_{is_confident}_mapped.png")
         # draw_reaction(mapped_reaction_template_smarts,f"{output_dir}/{i}_{is_confident}_template.png")
@@ -255,7 +256,7 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
                     continue
                 result.paste(img, (0, height_mol * img_idx, ))
 
-            result.save(f"{output_dir}/{i}_{is_confident}.png")
+            result.save(f"{output_dir}/{rxn_id}_{is_confident}.png")
 
 
 
