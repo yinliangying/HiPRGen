@@ -205,6 +205,8 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
 
     height_mol = 300
     width_mol = 300
+    false_num=0
+    true_num=0
     for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
         rxn_smarts=row["rxn_smarts"]
         mapped_reaction_smiles=row["mapped_reaction_smiles"]
@@ -213,32 +215,46 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
         # draw_reaction(rxn_smarts,f"{output_dir}/{i}_{is_confident}.png")
         # draw_reaction(mapped_reaction_smiles,f"{output_dir}/{i}_{is_confident}_mapped.png")
         # draw_reaction(mapped_reaction_template_smarts,f"{output_dir}/{i}_{is_confident}_template.png")
-        if i>10:
+        if_draw=False
+        if is_confident==False:
+            if false_num<10:
+                if_draw=True
+            false_num+=1
+        else:
+            if true_num<10:
+                if_draw=True
+            true_num+=1
+        if true_num>=10 and false_num>=10:
             break
-        pil_img_list=[]
-        rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
-        img = ReactionToImage(rxn)
-        img.resize((width_mol*5, height_mol))
-        pil_img_list.append(img)
-        rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
-        img = ReactionToImage(rxn)
-        img.resize((width_mol*5, height_mol))
-        pil_img_list.append(img)
-        # rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
-        # img = ReactionToImage(rxn)
-        # img.resize((width_mol*5, height_mol))
-        # pil_img_list.append(img)
-        mode = pil_img_list[0].mode
-        # 创建一个空白画布，用于拼接图片
-        result = Image.new(mode, (width_mol * 5, height_mol*len(pil_img_list)), color=(255, 255, 255))  #
 
-        # 在画布上拼接图片
-        for img_idx, img in enumerate(pil_img_list):
-            if img is None:
-                continue
-            result.paste(img, (0, height_mol * img_idx, ))
+        if if_draw:
+            pil_img_list=[]
+            rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
+            img = ReactionToImage(rxn)
+            img.resize((width_mol*5, height_mol))
+            pil_img_list.append(img)
+            rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
+            img = ReactionToImage(rxn)
+            img.resize((width_mol*5, height_mol))
+            pil_img_list.append(img)
+            try:
+                rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
+                img = ReactionToImage(rxn)
+                img.resize((width_mol*5, height_mol))
+                pil_img_list.append(img)
+            except:
+                pass
+            mode = pil_img_list[0].mode
+            # 创建一个空白画布，用于拼接图片
+            result = Image.new(mode, (width_mol * 5, height_mol*len(pil_img_list)), color=(255, 255, 255))  #
 
-        result.save(f"{output_dir}/{i}_{is_confident}.png")
+            # 在画布上拼接图片
+            for img_idx, img in enumerate(pil_img_list):
+                if img is None:
+                    continue
+                result.paste(img, (0, height_mol * img_idx, ))
+
+            result.save(f"{output_dir}/{i}_{is_confident}.png")
 
 
 
