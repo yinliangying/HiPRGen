@@ -224,13 +224,13 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
         img = ReactionToImage(rxn)
         img.resize((width_mol*5, height_mol))
         pil_img_list.append(img)
-        rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
-        img = ReactionToImage(rxn)
-        img.resize((width_mol*5, height_mol))
-        pil_img_list.append(img)
+        # rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
+        # img = ReactionToImage(rxn)
+        # img.resize((width_mol*5, height_mol))
+        # pil_img_list.append(img)
         mode = pil_img_list[0].mode
         # 创建一个空白画布，用于拼接图片
-        result = Image.new(mode, (width_mol * 5, height_mol), color=(255, 255, 255))  #
+        result = Image.new(mode, (width_mol * 5, height_mol*len(pil_img_list)), color=(255, 255, 255))  #
 
         # 在画布上拼接图片
         for img_idx, img in enumerate(pil_img_list):
