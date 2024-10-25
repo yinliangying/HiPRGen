@@ -223,7 +223,7 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
         if k not in template_dict:
             template_dict[k]=0
         template_dict[k]+=1
-        if template_dict[k] < 10 :
+        if template_dict[k] < 4 :
             if_draw=True
         else:
             if_draw = False
