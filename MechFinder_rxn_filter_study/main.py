@@ -229,8 +229,9 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
 
         if if_draw:
             pil_img_list=[]
-            rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
-            img = ReactionToImage(rxn)
+            # rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
+            # img = ReactionToImage(rxn)
+            img=draw_reaction(rxn_smarts,save=False)
             img.resize((width_mol*5, height_mol))
             pil_img_list.append(img)
             rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
