@@ -188,75 +188,60 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
     """
     https://github.com/neo-chem-synth-wave/atom-to-atom-mapping
     """
+    #add columns mapped_reaction_smiles,mapped_reaction_template_smarts,is_confident
     os.system(f"""python atom-to-atom-mapping/scripts/map_reaction_smiles_using_local_mapper.py \
      --batch_size 32 --input_csv_file_path {rxn_smarts_file}  \
      --reaction_smiles_column_name  rxn_smarts \
      --output_csv_file_path  {mapped_rxn_smarts_output_file}""")
-    # from rxnmapper import RXNMapper
-    # rxn_mapper = RXNMapper()
-    # rxn_df = pd.read_csv(rxn_smarts_file)
-    # batch_size=32
-    # rxn_smarts_batch_list=[]
-    # rxn_id_batch_list=[]
-    #
-    # with open( mapped_rxn_smarts_output_file, "w") as fp_out:
-    #     print("reaction_id,mapped_rxn,rxn_smarts,confidence",file=fp_out)
-    #     for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
-    #         rxn_smarts = row["rxn_smarts"]
-    #         reaction_id= row["reaction_id"]
-    #
-    #
-    #         rxn_id_batch_list.append(reaction_id)
-    #         rxn_smarts_batch_list.append(rxn_smarts)
-    #
-    #         if len(rxn_id_batch_list)==batch_size:
-    #             results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
-    #             for i, result in enumerate(results):
-    #                 rxn_id=rxn_id_batch_list[i]
-    #                 rxn_smarts=rxn_smarts_batch_list[i]
-    #                 try:
-    #                     mapped_rxn=result["mapped_rxn"]
-    #                     confidence=result["confidence"]
-    #                 except:
-    #                     print(f"error:{rxn_id}")
-    #                     continue
-    #                 print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}",file=fp_out)
-    #
-    #             rxn_id_batch_list=[]
-    #             rxn_smarts_batch_list=[]
-    #
-    #     results = rxn_mapper.get_attention_guided_atom_maps(rxn_smarts_batch_list)
-    #     for i, result in enumerate(results):
-    #         rxn_id = rxn_id_batch_list[i]
-    #         rxn_smarts = rxn_smarts_batch_list[i]
-    #         try:
-    #             mapped_rxn = result["mapped_rxn"]
-    #             confidence = result["confidence"]
-    #         except:
-    #             print(f"error:{rxn_id}")
-    #             continue
-    #         print(f"{rxn_id},{mapped_rxn},{rxn_smarts},{confidence}", file=fp_out)
+
+
+def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
+    df=pd.read_csv(mapped_rxn_smarts_file)
+
+    output_dir=f"{data_dir}tmp_rxn"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
+
+    height_mol = 300
+    width_mol = 300
+    for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
+        rxn_smarts=row["rxn_smarts"]
+        mapped_reaction_smiles=row["mapped_reaction_smiles"]
+        mapped_reaction_template_smarts=row["mapped_reaction_template_smarts"]
+        is_confident=row["is_confident"]
+        # draw_reaction(rxn_smarts,f"{output_dir}/{i}_{is_confident}.png")
+        # draw_reaction(mapped_reaction_smiles,f"{output_dir}/{i}_{is_confident}_mapped.png")
+        # draw_reaction(mapped_reaction_template_smarts,f"{output_dir}/{i}_{is_confident}_template.png")
+        if i>10:
+            break
+        pil_img_list=[]
+        rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
+        img = ReactionToImage(rxn)
+        img.resize((width_mol*5, height_mol))
+        pil_img_list.append(img)
+        rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
+        img = ReactionToImage(rxn)
+        img.resize((width_mol*5, height_mol))
+        pil_img_list.append(img)
+        rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
+        img = ReactionToImage(rxn)
+        img.resize((width_mol*5, height_mol))
+        pil_img_list.append(img)
+        mode = pil_img_list[0].mode
+        # 创建一个空白画布，用于拼接图片
+        result = Image.new(mode, (width_mol * 5, height_mol), color=(255, 255, 255))  #
+
+        # 在画布上拼接图片
+        for img_idx, img in enumerate(pil_img_list):
+            if img is None:
+                continue
+            result.paste(img, (0, height_mol * img_idx, ))
+
+        result.save(f"{output_dir}/{i}_{is_confident}.png")
 
 
 
-
-# def apply_MechFinder_test(mapped_rxn_smarts_file: str ):
-#     from MechFinder import MechFinder
-#     finder = MechFinder(collection_dir='MechFinder/collections')
-#
-#     df=pd.read_csv(mapped_rxn_smarts_file)
-#
-#     print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path")
-#     for i,row in tqdm(df.iterrows(),total=df.shape[0]):
-#         rxn_id= ""
-#         rxn_str = row["reaction"]
-#         try:
-#             updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
-#         except:
-#             continue
-#         if not isinstance(finder.check_exception(MT_class), str):
-#             if MT_class!="mechanism not in collection":
-#                 print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}" )
 
 
 def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
@@ -273,6 +258,7 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
     result_info_dict={}
     with open(mech_output_file, "w") as fp_out:
         print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
+        # df = df[df['is_confident'] == "True"]
         for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
             if i%1000==0:
                 print(result_info_dict)
@@ -332,7 +318,7 @@ def draw_molecule(smiles, filename="molecule.png"):
     img = Draw.MolToImage(mol)
     img.save(filename)
 
-def draw_reaction(rxn_smarts, filename="reaction.png"):
+def draw_reaction(rxn_smarts, filename="reaction.png",save=True):
     # rxn = AllChem.ReactionFromSmarts(rxn_smarts, useSmiles=True)
     # img = ReactionToImage(rxn)
     # img.save(filename)
@@ -375,8 +361,10 @@ def draw_reaction(rxn_smarts, filename="reaction.png"):
         result.paste(img, (width_mol*img_idx, 0))
 
     # 保存拼接后的图片
-    result.save(filename)
-
+    if save:
+        result.save(filename)
+    else:
+        return result
 def find_reaction(smi_csv_path: str,rn_db_path: str):
 
     output_dir=f"{data_dir}tmp_rxn"
@@ -469,80 +457,6 @@ def find_mol(smiles_csv_file:str):
 
 
 
-# def apply_MechFinder_test(mapped_rxn_smarts_file: str ):
-#     from MechFinder import MechFinder
-#     finder = MechFinder(collection_dir='MechFinder/collections')
-#
-#     df=pd.read_csv(mapped_rxn_smarts_file)
-#
-#     print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path")
-#     for i,row in tqdm(df.iterrows(),total=df.shape[0]):
-#         rxn_id= ""
-#         rxn_str = row["reaction"]
-#         try:
-#             updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(rxn_str)
-#         except:
-#             continue
-#         if not isinstance(finder.check_exception(MT_class), str):
-#             if MT_class!="mechanism not in collection":
-#                 print(f"{rxn_id},{rxn_str},{updated_reaction},{LRT},{MT_class},{electron_path}" )
-
-def mapping_test():
-    output_dir=f"{data_dir}tmp_rxn"
-    os.mkdir(output_dir)
-
-    from rxnmapper import RXNMapper
-    rxn_mapper = RXNMapper()
-
-    rxn_smarts =  """"""
-    results = rxn_mapper.get_attention_guided_atom_maps([rxn_smarts])
-    mapped_rxn=results[0]["mapped_rxn"]
-    confidence=results[0]["confidence"]
-
-    draw_reaction(mapped_rxn, f"{output_dir}/tmp.png")
-    print(f"{confidence},{mapped_rxn},{rxn_smarts}")
-
-
-# def mapping_mechfinder_test(rxn_smarts_file: str):
-#     output_dir=f"{data_dir}tmp_rxn"
-#     if os.path.exists(output_dir):
-#         shutil.rmtree(output_dir)
-#     os.mkdir(output_dir)
-#
-#
-#
-#     rxn_mapper = RXNMapper()
-#     rxn_df = pd.read_csv(rxn_smarts_file)
-#
-#     finder = MechFinder(collection_dir='MechFinder/collections')
-#
-#     for i, row in tqdm(rxn_df.iterrows(),total=rxn_df.shape[0]):
-#         if i%100==0:
-#             pass
-#         else:
-#             continue
-#         rxn_smarts = row["rxn_smarts"]
-#         reaction_id= row["reaction_id"]
-#
-#
-#         results = rxn_mapper.get_attention_guided_atom_maps([rxn_smarts])
-#         try:
-#             mapped_rxn=results[0]["mapped_rxn"]
-#             confidence=results[0]["confidence"]
-#         except:
-#             print(f"{reaction_id} error")
-#             continue
-#         print(f"{reaction_id},{mapped_rxn}")
-#
-#         try:
-#             updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(mapped_rxn)
-#         except:
-#             continue
-#         if not isinstance(finder.check_exception(MT_class), str):
-#             if MT_class != "mechanism not in collection":
-#                 print(f"{reaction_id},{mapped_rxn},{updated_reaction},{LRT},{MT_class},{electron_path}" )
-#
-#
 
 if __name__ == "__main__":
 
@@ -559,7 +473,7 @@ if __name__ == "__main__":
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
     #mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
-    apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
-
+    #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
+    eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
     #apply_MechFinder_test(f"MechFinder/data/samples.csv")
     #mapping_mechfinder_test(f"{data_dir}rxn_smarts.csv")
