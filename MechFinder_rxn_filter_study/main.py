@@ -205,8 +205,7 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
 
     height_mol = 300
     width_mol = 300
-    false_num=0
-    true_num=0
+    template_dict={}
     for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
         rxn_smarts=row["rxn_smarts"]
         mapped_reaction_smiles=row["mapped_reaction_smiles"]
@@ -216,17 +215,19 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
         # draw_reaction(rxn_smarts,f"{output_dir}/{i}_{is_confident}.png")
         # draw_reaction(mapped_reaction_smiles,f"{output_dir}/{i}_{is_confident}_mapped.png")
         # draw_reaction(mapped_reaction_template_smarts,f"{output_dir}/{i}_{is_confident}_template.png")
-        if_draw=False
+
         if is_confident==False:
-            if false_num<10:
-                if_draw=True
-            false_num+=1
+            k="false"
         else:
-            if true_num<10:
-                if_draw=True
-            true_num+=1
-        if true_num>=10 and false_num>=10:
-            break
+            k=mapped_reaction_template_smarts
+        if k not in template_dict:
+            template_dict[k]=0
+        template_dict[k]+=1
+        if template_dict[k] < 10 :
+            if_draw=True
+        else:
+            if_draw = False
+
 
         if if_draw:
             pil_img_list=[]
