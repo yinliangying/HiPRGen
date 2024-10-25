@@ -279,9 +279,9 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
             if i>4:
                 break
             rxn_id=row["reaction_id"]
-            mapped_rxn = row["mapped_rxn"]
+            mapped_rxn = row["mapped_reaction_smiles"]
             unmapped_rxn = row["rxn_smarts"]
-            mapping_confidence=row["confidence"]
+            #mapping_confidence=row["confidence"]
 
             try:
                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(mapped_rxn)
@@ -299,7 +299,7 @@ def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
                         print(f"{rxn_id},{mapped_rxn},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
             #print(MT_class)
             draw_reaction(mapped_rxn, f"{output_dir}/{rxn_id}.png")
-            print(f"{rxn_id},{mapped_rxn},{unmapped_rxn},{mapping_confidence},{MT_class}")
+            print(f"{rxn_id},{mapped_rxn},{unmapped_rxn},{MT_class}")
 
 def count_elements(mol):
     """
@@ -558,7 +558,7 @@ if __name__ == "__main__":
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
-    mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
+    #mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
     apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
 
     #apply_MechFinder_test(f"MechFinder/data/samples.csv")
