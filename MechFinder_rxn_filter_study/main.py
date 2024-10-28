@@ -130,7 +130,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
 
     #prepare filtered_rxn_db
     if os.path.exists(filtered_rxn_db_path_path):
-        shutil.rmtree(filtered_rxn_db_path_path)
+        os.remove(filtered_rxn_db_path_path)
     filtered_rxn_con = sqlite3.connect( filtered_rxn_db_path_path)
     filtered_rxn_cur = filtered_rxn_con.cursor()
     filtered_rxn_cur.execute("""
