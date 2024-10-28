@@ -457,6 +457,7 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
         draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{rxn_id_rxn_str}.png")
 
 def find_mol(smiles_csv_file:str):
+    from rdkit.Chem import Descriptors
     output_dir=f"{data_dir}tmp"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
@@ -470,9 +471,10 @@ def find_mol(smiles_csv_file:str):
         mol=Chem.MolFromSmiles(smiles)
         if mol:
             count_elements_dict=count_elements(mol)
+            ring_count = Descriptors.RingCount(mol)
             try:
                 #if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and count_elements_dict["F"]==2:
-                if count_elements_dict["C"]==3 and count_elements_dict["O"]==3 and count_elements_dict["F"]==1  and count_elements_dict["Li"]==1:
+                if ring_count==1 and count_elements_dict["C"]==3 and count_elements_dict["O"]==3 and count_elements_dict["F"]==1  and count_elements_dict["Li"]==1:
                     print(f"{mol_id},{smiles},{well_define}")
                     draw_molecule(smiles,f"{output_dir}/{mol_id}.png")
             except:
