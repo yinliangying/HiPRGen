@@ -478,10 +478,17 @@ def find_mol(smiles_csv_file:str):
             has_five_membered_ring = any(len(ring) == 5 for ring in sssr)
             # 检查分子中是否有自由基
             has_radical = any(atom.GetNumRadicalElectrons() > 0 for atom in mol.GetAtoms())
+            # 确保分子的电荷被正确计算
+            AllChem.ComputeGasteigerCharges(mol)
+
+            # 计算分子的净电荷
+            net_charge = sum(atom.GetFormalCharge() for atom in mol.GetAtoms())
 
             try:
                 #if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and count_elements_dict["F"]==2:
-                if well_define==1 and not has_radical and has_five_membered_ring and ring_count==1 and count_elements_dict["C"]==3 and count_elements_dict["O"]==3 and count_elements_dict["F"]==1  and count_elements_dict["Li"]==1:
+                if net_charge==0 and well_define==1 and not has_radical and has_five_membered_ring and ring_count==1 and \
+                        count_elements_dict["C"]==3 and count_elements_dict["O"]==3 and count_elements_dict["F"]==1  \
+                        and "Li" not in count_elements_dict and "P" not in count_elements_dict:
                     print(f"{mol_id},{smiles},{well_define}")
                     draw_molecule(smiles,f"{output_dir}/{mol_id}.png")
             except:
