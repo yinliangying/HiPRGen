@@ -19,6 +19,7 @@ from tqdm import tqdm
 from rdkit.Chem.Draw import ReactionToImage
 import shutil
 from PIL import Image, ImageDraw, ImageFont
+from localmapper import localmapper
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -104,6 +105,157 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
             except:
                 continue
             print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num}",file=fp_out)
+
+
+
+def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: str):
+    """
+       目前只考虑无自由基无净电荷分子
+         2. 只包含通过模板过滤的反应
+           3. 如果反应匹配上模板，模板的反应物产物数必须和反应的反应物产物数相同
+    """
+
+    # Load smiles
+    id_smiles_dict = {}
+    smiles_id_dict = {}
+    smi_df= pd.read_csv(smi_csv_path)
+    for i, row in tqdm(smi_df.iterrows(),total=smi_df.shape[0]):
+        mol_id = int(row["idx"])
+        smiles = row["smiles"]
+        well_define = int(row["well_define"])
+        mol_charge = int(row["mol_charge"])
+        if well_define==1 and mol_charge==0:
+            id_smiles_dict[mol_id] = smiles
+            smiles_id_dict[smiles] = mol_id
+
+    #prepare filtered_rxn_db
+    if os.path.exists(filtered_rxn_db_path_path):
+        shutil.rmtree(filtered_rxn_db_path_path)
+    filtered_rxn_con = sqlite3.connect( filtered_rxn_db_path_path)
+    filtered_rxn_cur = filtered_rxn_con.cursor()
+    filtered_rxn_cur.execute("""
+        CREATE TABLE reactions (
+                reaction_id         INTEGER NOT NULL PRIMARY KEY,
+                number_of_reactants INTEGER NOT NULL,
+                number_of_products  INTEGER NOT NULL,
+                reactant_1          INTEGER NOT NULL,
+                reactant_2          INTEGER NOT NULL,
+                product_1           INTEGER NOT NULL,
+                product_2           INTEGER NOT NULL,
+                rate                REAL NOT NULL,
+                dG                  REAL NOT NULL,
+                dG_barrier          REAL NOT NULL,
+                is_redox            INTEGER NOT NULL,
+                template            STRING,
+                mapped_rxn          STRING,
+                rxn                 STRING
+        );
+    """)
+    filtered_rxn_con.commit()
+
+
+
+    rn_con = sqlite3.connect(rxn_db_path)
+    rn_cur = rn_con.cursor()
+
+    rn_cur.execute(f"select count(*) from reactions")
+    sql_limit = rn_cur.fetchone()[0]
+
+    rn_cur.execute(
+        f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2, "
+        f"rate,dG,dG_barrier,is_redox from reactions")
+    mapping_batch_size=10000
+    tmp_mapping_row_list=[]
+    tmp_mapping_rxn_list=[]
+    mapper = localmapper("cpu")
+    for row in tqdm(rn_cur, total=sql_limit):
+
+        number_of_reactants = int(row[1])
+        number_of_products = int(row[2])
+        reactant_1 = int(row[3])
+        reactant_2 = int(row[4])
+        product_1 = int(row[5])
+        product_2 = int(row[6])
+        try:
+            reactant_1_smiles = id_smiles_dict[reactant_1]
+        except:
+            continue
+        if number_of_reactants == 2:
+            try:
+                reactant_2_smiles = id_smiles_dict[reactant_2]
+            except:
+                continue
+        try:
+            product_1_smiles = id_smiles_dict[product_1]
+        except:
+            continue
+        if number_of_products == 2:
+            try:
+                product_2_smiles = id_smiles_dict[product_2]
+            except:
+                continue
+        rxn_smiles=reactant_1_smiles
+        if number_of_reactants == 2:
+            rxn_smiles += "." + reactant_2_smiles
+        rxn_smiles += f">>{product_1_smiles}"
+        if number_of_products == 2:
+            rxn_smiles += "." + product_2_smiles
+
+        tmp_mapping_rxn_list.append(rxn_smiles)
+        tmp_mapping_row_list.append(row)
+
+        if len(tmp_mapping_row_list)==mapping_batch_size:
+            tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list)
+            for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list,tmp_mapping_rxn_list):
+                if tmp_result["confident"] == True:
+                    template = tmp_result["template"]
+                    mapped_rxn = tmp_result["mapped_rxn"]
+                    rxn_reactant, rxn_product = mapped_rxn.split(">>")
+                    rxn_reactant_num = len(rxn_reactant.split("."))
+                    rxn_product_num = len(rxn_product.split("."))
+                    template_reactant, template_product = template.split(">>")
+                    template_reactant_num = len(template_reactant.split("."))
+                    template_product_num = len(template_product.split("."))
+                    if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
+                        filtered_sql_str = f"""
+                        insert into reactions 
+                        (reaction_id, number_of_reactants,number_of_products,reactant_1,  reactant_2,  product_1,   product_2,  rate,         dG,          dG_barrier,  is_redox,
+                        template,mapped_rxn,rxn)
+                         values 
+                        ({tmp_row[0]},{tmp_row[1]},       {tmp_row[2]},      {tmp_row[3]},{tmp_row[4]},{tmp_row[5]},{tmp_row[6]},{tmp_row[7]},{tmp_row[8]},{tmp_row[9]},{tmp_row[10]},
+                        {template},{mapped_rxn},{tmp_rxn})
+                        """
+                        filtered_rxn_cur.execute(filtered_sql_str)
+
+            filtered_rxn_con.commit()
+            tmp_mapping_rxn_list=[]
+            tmp_mapping_row_list=[]
+
+    tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list)
+    for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list, tmp_mapping_rxn_list):
+        if tmp_result["confident"] == True:
+            template = tmp_result["template"]
+            mapped_rxn = tmp_result["mapped_rxn"]
+            rxn_reactant, rxn_product = mapped_rxn.split(">>")
+            rxn_reactant_num = len(rxn_reactant.split("."))
+            rxn_product_num = len(rxn_product.split("."))
+            template_reactant, template_product = template.split(">>")
+            template_reactant_num = len(template_reactant.split("."))
+            template_product_num = len(template_product.split("."))
+            if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
+                filtered_sql_str = f"""
+                            insert into reactions 
+                            (reaction_id, number_of_reactants,number_of_products,reactant_1,  reactant_2,  product_1,   product_2,  rate,         dG,          dG_barrier,  is_redox,
+                            template,mapped_rxn,rxn)
+                             values 
+                            ({tmp_row[0]},{tmp_row[1]},       {tmp_row[2]},      {tmp_row[3]},{tmp_row[4]},{tmp_row[5]},{tmp_row[6]},{tmp_row[7]},{tmp_row[8]},{tmp_row[9]},{tmp_row[10]},
+                            {template},{mapped_rxn},{tmp_rxn})
+                            """
+                filtered_rxn_cur.execute(filtered_sql_str)
+
+    filtered_rxn_con.commit()
+
+
 
 
 
@@ -505,7 +657,7 @@ if __name__ == "__main__":
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
-    find_mol(f"{data_dir}smiles.csv")
+    #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
     # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
@@ -517,3 +669,4 @@ if __name__ == "__main__":
     #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
     #apply_MechFinder_test(f"MechFinder/data/samples.csv")
     #mapping_mechfinder_test(f"{data_dir}rxn_smarts.csv")
+    filter_rxn(f"{data_dir}rxn_smarts.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
