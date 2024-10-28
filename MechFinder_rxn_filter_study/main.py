@@ -457,6 +457,11 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
         draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{rxn_id_rxn_str}.png")
 
 def find_mol(smiles_csv_file:str):
+    output_dir=f"{data_dir}tmp"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
+
     df=pd.read_csv(smiles_csv_file)
     for i,row in tqdm(df.iterrows(),total=df.shape[0]):
         smiles=row["smiles"]
@@ -467,9 +472,9 @@ def find_mol(smiles_csv_file:str):
             count_elements_dict=count_elements(mol)
             try:
                 #if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and count_elements_dict["F"]==2:
-                if count_elements_dict["C"]==7 and count_elements_dict["O"]==1 and count_elements_dict["F"]==1:
+                if count_elements_dict["C"]==3 and count_elements_dict["O"]==3 and count_elements_dict["F"]==1  and count_elements_dict["Li"]==1:
                     print(f"{mol_id},{smiles},{well_define}")
-                    draw_molecule(smiles,f"{data_dir}tmp/{mol_id}.png")
+                    draw_molecule(smiles,f"{output_dir}/{mol_id}.png")
             except:
                 continue
 
@@ -484,7 +489,7 @@ if __name__ == "__main__":
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
-    #find_mol(f"{data_dir}smiles.csv")
+    find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
     # filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
@@ -493,6 +498,6 @@ if __name__ == "__main__":
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
     #mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
     #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
-    eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
+    #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
     #apply_MechFinder_test(f"MechFinder/data/samples.csv")
     #mapping_mechfinder_test(f"{data_dir}rxn_smarts.csv")
