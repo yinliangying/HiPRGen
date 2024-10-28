@@ -158,8 +158,8 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
     rn_con = sqlite3.connect(rxn_db_path)
     rn_cur = rn_con.cursor()
 
-    rn_cur.execute(f"select count(*) from reactions")
-    sql_limit = rn_cur.fetchone()[0]
+    # rn_cur.execute(f"select count(*) from reactions")
+    # sql_limit = rn_cur.fetchone()[0]
 
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2, "
@@ -168,7 +168,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
     tmp_mapping_row_list=[]
     tmp_mapping_rxn_list=[]
     mapper = localmapper("cpu")
-    for row in tqdm(rn_cur, total=sql_limit):
+    for row in tqdm(rn_cur):
 
         number_of_reactants = int(row[1])
         number_of_products = int(row[2])
@@ -660,7 +660,7 @@ if __name__ == "__main__":
     #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
-    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
