@@ -454,7 +454,7 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
 
         rxn_id_rxn_str=f"{reactant_1}.{reactant_2}>>{product_1}.{product_2}"
         print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}" )
-        draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{rxn_id_rxn_str}.png")
+        draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{reactant_1}.{reactant_2}>>{product_1}.{product_2}_{rxn_id_rxn_str}.png")
 
 def find_mol(smiles_csv_file:str):
     from rdkit.Chem import Descriptors
