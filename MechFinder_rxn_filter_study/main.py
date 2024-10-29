@@ -23,6 +23,11 @@ from localmapper import localmapper
 import logging
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(module)s - %(funcName)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -229,11 +234,11 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         (reaction_id, number_of_reactants,number_of_products,reactant_1,  reactant_2,  product_1,   product_2,  rate,         dG,          dG_barrier,  is_redox,
                         template,mapped_rxn,rxn)
                          values 
-                        ({tmp_row[0]},{tmp_row[1]},       {tmp_row[2]},      {tmp_row[3]},{tmp_row[4]},{tmp_row[5]},{tmp_row[6]},{tmp_row[7]},{tmp_row[8]},{tmp_row[9]},{tmp_row[10]},
-                        {template},{mapped_rxn},{tmp_rxn})
+                        (?,?,?,?,?,?,?,?,?,?,?,
+                        ?,?,?)
                         """
                         try:
-                            filtered_rxn_cur.execute(filtered_sql_str)
+                            filtered_rxn_cur.execute(filtered_sql_str,tmp_row+[template,mapped_rxn,tmp_rxn])
                         except:
                             logger.error(filtered_sql_str)
                             continue
@@ -257,14 +262,18 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
             template_product_num = len(template_product.split("."))
             if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
                 filtered_sql_str = f"""
-                            insert into reactions 
-                            (reaction_id, number_of_reactants,number_of_products,reactant_1,  reactant_2,  product_1,   product_2,  rate,         dG,          dG_barrier,  is_redox,
-                            template,mapped_rxn,rxn)
-                             values 
-                            ({tmp_row[0]},{tmp_row[1]},       {tmp_row[2]},      {tmp_row[3]},{tmp_row[4]},{tmp_row[5]},{tmp_row[6]},{tmp_row[7]},{tmp_row[8]},{tmp_row[9]},{tmp_row[10]},
-                            {template},{mapped_rxn},{tmp_rxn})
-                            """
-                filtered_rxn_cur.execute(filtered_sql_str)
+                insert into reactions 
+                (reaction_id, number_of_reactants,number_of_products,reactant_1,  reactant_2,  product_1,   product_2,  rate,         dG,          dG_barrier,  is_redox,
+                template,mapped_rxn,rxn)
+                 values 
+                (?,?,?,?,?,?,?,?,?,?,?,
+                ?,?,?)
+                """
+                try:
+                    filtered_rxn_cur.execute(filtered_sql_str, tmp_row + [template, mapped_rxn, tmp_rxn])
+                except:
+                    logger.error(filtered_sql_str)
+                    continue
 
     filtered_rxn_con.commit()
 
