@@ -306,36 +306,45 @@ def eda_filtered_rxn(filtered_rxn_db_path_path: str):
     width_mol = 300
     sql_str="""select reaction_id,template,mapped_rxn,rxn from reactions"""
     filtered_rxn_cur.execute(sql_str)
+    template_dict={}
     for reaction_id,mapped_reaction_template_smarts,mapped_reaction_smiles,rxn_smarts in tqdm(filtered_rxn_cur,total=number_of_reactions):
 
-        pil_img_list=[]
-        img=draw_reaction(rxn_smarts,save=False)
-        img.resize((width_mol*5, height_mol))
-        pil_img_list.append(img)
+        if mapped_reaction_template_smarts not in template_dict:
+            template_dict[mapped_reaction_template_smarts]=0
+        template_dict[mapped_reaction_template_smarts] += 1
+        if template_dict[mapped_reaction_template_smarts]<=1:
+            if_draw = True
+        else:
+            if_draw = False
+        if if_draw:
+            pil_img_list=[]
+            img=draw_reaction(rxn_smarts,save=False)
+            img.resize((width_mol*5, height_mol))
+            pil_img_list.append(img)
 
-        rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
-        img = ReactionToImage(rxn)
-        img.resize((width_mol*5, height_mol))
-        pil_img_list.append(img)
-
-        try:
-            rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
+            rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
             img = ReactionToImage(rxn)
             img.resize((width_mol*5, height_mol))
             pil_img_list.append(img)
-        except:
-            pass
 
-        mode = pil_img_list[0].mode
-        # 创建一个空白画布，用于拼接图片
-        result = Image.new(mode, (width_mol * 5, height_mol*len(pil_img_list)), color=(255, 255, 255))  #
-        # 在画布上拼接图片
-        for img_idx, img in enumerate(pil_img_list):
-            if img is None:
-                continue
-            result.paste(img, (0, height_mol * img_idx, ))
+            try:
+                rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
+                img = ReactionToImage(rxn)
+                img.resize((width_mol*5, height_mol))
+                pil_img_list.append(img)
+            except:
+                pass
 
-        result.save(f"{output_dir}/{reaction_id}.png")
+            mode = pil_img_list[0].mode
+            # 创建一个空白画布，用于拼接图片
+            result = Image.new(mode, (width_mol * 5, height_mol*len(pil_img_list)), color=(255, 255, 255))  #
+            # 在画布上拼接图片
+            for img_idx, img in enumerate(pil_img_list):
+                if img is None:
+                    continue
+                result.paste(img, (0, height_mol * img_idx, ))
+
+            result.save(f"{output_dir}/{reaction_id}.png")
 
 def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file: str):
     """
