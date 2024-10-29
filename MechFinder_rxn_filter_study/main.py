@@ -230,7 +230,12 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         ({tmp_row[0]},{tmp_row[1]},       {tmp_row[2]},      {tmp_row[3]},{tmp_row[4]},{tmp_row[5]},{tmp_row[6]},{tmp_row[7]},{tmp_row[8]},{tmp_row[9]},{tmp_row[10]},
                         {template},{mapped_rxn},{tmp_rxn})
                         """
-                        filtered_rxn_cur.execute(filtered_sql_str)
+                        try:
+                            filtered_rxn_cur.execute(filtered_sql_str)
+                        except:
+                            print("error")
+                            print(filtered_rxn_cur)
+                            continue
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
         if mapping_times % commit_freq == 0:
