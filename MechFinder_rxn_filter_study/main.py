@@ -106,8 +106,6 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
                 continue
             print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num}",file=fp_out)
 
-
-
 def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: str):
     """
        目前只考虑无自由基无净电荷分子
@@ -124,7 +122,8 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         smiles = row["smiles"]
         well_define = int(row["well_define"])
         mol_charge = int(row["mol_charge"])
-        if well_define==1 and mol_charge==0:
+        star_atom_num=int(row["star_atom_num"])
+        if well_define==1 and mol_charge==0 and star_atom_num==0:
             id_smiles_dict[mol_id] = smiles
             smiles_id_dict[smiles] = mol_id
 
@@ -235,7 +234,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         except:
                             print("error")
                             print(filtered_rxn_cur)
-                            continue
+                            exit(1)
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
 
@@ -267,10 +266,6 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
 
     filtered_rxn_con.commit()
 
-
-
-
-
 def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file: str):
     """
     rn_db_path  exp:"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
@@ -285,8 +280,12 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
     for i, row in tqdm(smi_df.iterrows(),total=smi_df.shape[0]):
         mol_id = int(row["idx"])
         smiles = row["smiles"]
-        id_smiles_dict[mol_id] = smiles
-        smiles_id_dict[smiles] = mol_id
+        well_define = int(row["well_define"])
+        mol_charge = int(row["mol_charge"])
+        star_atom_num=int(row["star_atom_num"])
+        if well_define==1 and mol_charge==0 and star_atom_num==0:
+            id_smiles_dict[mol_id] = smiles
+            smiles_id_dict[smiles] = mol_id
 
 
     rn_con = sqlite3.connect(rn_db_path)
@@ -345,9 +344,6 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
 
             print(f"{reaction_id},{rxn_smarts}",file=fp_out)
 
-
-
-
 def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
     """
     https://github.com/neo-chem-synth-wave/atom-to-atom-mapping
@@ -357,7 +353,6 @@ def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
      --batch_size 32 --input_csv_file_path {rxn_smarts_file}  \
      --reaction_smiles_column_name  rxn_smarts \
      --output_csv_file_path  {mapped_rxn_smarts_output_file}""")
-
 
 def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
     df=pd.read_csv(mapped_rxn_smarts_file)
@@ -422,10 +417,6 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
                 result.paste(img, (0, height_mol * img_idx, ))
 
             result.save(f"{output_dir}/{rxn_id}_{is_confident}.png")
-
-
-
-
 
 def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
     #from rxnmapper import RXNMapper  这句话会导致MechFinder无法打印报错
@@ -659,12 +650,7 @@ def find_mol(smiles_csv_file:str):
                 continue
 
 
-
-
-
 if __name__ == "__main__":
-
-
 
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
@@ -679,6 +665,4 @@ if __name__ == "__main__":
     #mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
     #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
     #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
-    #apply_MechFinder_test(f"MechFinder/data/samples.csv")
-    #mapping_mechfinder_test(f"{data_dir}rxn_smarts.csv")
     filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
