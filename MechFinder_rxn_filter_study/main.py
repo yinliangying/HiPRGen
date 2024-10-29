@@ -21,6 +21,7 @@ import shutil
 from PIL import Image, ImageDraw, ImageFont
 from localmapper import localmapper
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -240,7 +241,9 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         try:
                             filtered_rxn_cur.execute(filtered_sql_str,tmp_row+[template,mapped_rxn,tmp_rxn])
                         except:
-                            logger.error(filtered_sql_str)
+
+                            logger.error(traceback.format_exc())
+                            logger.error(str(tmp_row+[template,mapped_rxn,tmp_rxn]))
                             continue
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
@@ -272,7 +275,9 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                 try:
                     filtered_rxn_cur.execute(filtered_sql_str, tmp_row + [template, mapped_rxn, tmp_rxn])
                 except:
-                    logger.error(filtered_sql_str)
+
+                    logger.error(traceback.format_exc())
+                    logger.error(str(tmp_row + [template, mapped_rxn, tmp_rxn]))
                     continue
 
     filtered_rxn_con.commit()
