@@ -20,6 +20,9 @@ from rdkit.Chem.Draw import ReactionToImage
 import shutil
 from PIL import Image, ImageDraw, ImageFont
 from localmapper import localmapper
+import logging
+
+logger = logging.getLogger(__name__)
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
@@ -126,7 +129,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         if well_define==1 and mol_charge==0 and star_atom_num==0:
             id_smiles_dict[mol_id] = smiles
             smiles_id_dict[smiles] = mol_id
-    print(f"smiles_id_dict length:{len(smiles_id_dict)}")
+    logger.info(f"smiles_id_dict length:{len(smiles_id_dict)}")
     #prepare filtered_rxn_db
     if os.path.exists(filtered_rxn_db_path_path):
         os.remove(filtered_rxn_db_path_path)
@@ -206,9 +209,9 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         tmp_mapping_row_list.append(row)
 
         if len(tmp_mapping_row_list)==mapping_batch_size:
-            print("mapping times:",mapping_times)
+            logger.info(f"mapping times:{mapping_times}")
             tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
-            print("mapping finished")
+            logger.info("mapping finished")
             mapping_times += 1
             for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list,tmp_mapping_rxn_list):
                 if tmp_result["confident"] == True:
@@ -232,14 +235,13 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         try:
                             filtered_rxn_cur.execute(filtered_sql_str)
                         except:
-                            print("error")
-                            print(filtered_sql_str)
+                            logger.error(filtered_sql_str)
                             continue
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
 
             if mapping_times % commit_freq == 0:
-                print(f"commit at {mapping_times}")
+                logger.info(f"commit at {mapping_times}")
                 filtered_rxn_con.commit()
 
     tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
