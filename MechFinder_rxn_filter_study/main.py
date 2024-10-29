@@ -126,7 +126,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         if well_define==1 and mol_charge==0 and star_atom_num==0:
             id_smiles_dict[mol_id] = smiles
             smiles_id_dict[smiles] = mol_id
-
+    print(f"smiles_id_dict length:{len(smiles_id_dict)}")
     #prepare filtered_rxn_db
     if os.path.exists(filtered_rxn_db_path_path):
         os.remove(filtered_rxn_db_path_path)
