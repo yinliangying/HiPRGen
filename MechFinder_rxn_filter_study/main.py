@@ -239,11 +239,12 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         ?,?,?)
                         """
                         try:
-                            filtered_rxn_cur.execute(filtered_sql_str,tmp_row+[template,mapped_rxn,tmp_rxn])
+                            sql_data = list(tmp_row) + [template, mapped_rxn, tmp_rxn]
+                            filtered_rxn_cur.execute(filtered_sql_str, sql_data)
                         except:
 
                             logger.error(traceback.format_exc())
-                            logger.error(str(tmp_row+[template,mapped_rxn,tmp_rxn]))
+                            logger.error(str(sql_data))
                             continue
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
@@ -273,11 +274,12 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                 ?,?,?)
                 """
                 try:
-                    filtered_rxn_cur.execute(filtered_sql_str, tmp_row + [template, mapped_rxn, tmp_rxn])
+                    sql_data=list(tmp_row)+[template,mapped_rxn,tmp_rxn]
+                    filtered_rxn_cur.execute(filtered_sql_str, sql_data)
                 except:
 
                     logger.error(traceback.format_exc())
-                    logger.error(str(tmp_row + [template, mapped_rxn, tmp_rxn]))
+                    logger.error(str(sql_data))
                     continue
 
     filtered_rxn_con.commit()
