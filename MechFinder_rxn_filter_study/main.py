@@ -284,6 +284,18 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
 
     filtered_rxn_con.commit()
 
+def eda_filtered_rxn(filtered_rxn_db_path_path: str):
+    filtered_rxn_con = sqlite3.connect(filtered_rxn_db_path_path)
+    filtered_rxn_cur = filtered_rxn_con.cursor()
+
+    sql_str="""
+    select count(*) from reactions
+    """
+
+    filtered_rxn_cur.execute(sql_str)
+    for (number_of_reactions,) in filtered_rxn_cur:
+        print(number_of_reactions)
+
 def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file: str):
     """
     rn_db_path  exp:"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
@@ -683,4 +695,5 @@ if __name__ == "__main__":
     #mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
     #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
     #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
-    filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
+    #filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
+    eda_filtered_rxn(f"{data_dir}/rn_filtered.sqlite")
