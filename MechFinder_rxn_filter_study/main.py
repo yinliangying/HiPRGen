@@ -171,7 +171,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2, "
         f"rate,dG,dG_barrier,is_redox from reactions")
-    mapping_batch_size=100
+    mapping_batch_size=1000
     commit_freq=100
     mapping_times = 0
     tmp_mapping_row_list=[]
