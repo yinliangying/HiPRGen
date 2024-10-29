@@ -164,7 +164,9 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2, "
         f"rate,dG,dG_barrier,is_redox from reactions")
-    mapping_batch_size=10000
+    mapping_batch_size=100
+    commit_freq=100
+    mapping_times = 0
     tmp_mapping_row_list=[]
     tmp_mapping_rxn_list=[]
     mapper = localmapper("cpu")
@@ -205,7 +207,10 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         tmp_mapping_row_list.append(row)
 
         if len(tmp_mapping_row_list)==mapping_batch_size:
-            tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list)
+            print("mapping times:",mapping_times)
+            tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
+            print("mapping finished")
+            mapping_times += 1
             for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list,tmp_mapping_rxn_list):
                 if tmp_result["confident"] == True:
                     template = tmp_result["template"]
@@ -226,12 +231,13 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         {template},{mapped_rxn},{tmp_rxn})
                         """
                         filtered_rxn_cur.execute(filtered_sql_str)
-
-            filtered_rxn_con.commit()
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
+        if mapping_times % commit_freq == 0:
+            print(f"commit at {mapping_times}")
+            filtered_rxn_con.commit()
 
-    tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list)
+    tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
     for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list, tmp_mapping_rxn_list):
         if tmp_result["confident"] == True:
             template = tmp_result["template"]
