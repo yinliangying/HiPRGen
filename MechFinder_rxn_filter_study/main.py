@@ -234,7 +234,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         except:
                             print("error")
                             print(filtered_rxn_cur)
-                            exit(1)
+                            continue
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
 
