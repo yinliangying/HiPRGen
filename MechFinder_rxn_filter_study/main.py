@@ -238,9 +238,10 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                             continue
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
-        if mapping_times % commit_freq == 0:
-            print(f"commit at {mapping_times}")
-            filtered_rxn_con.commit()
+
+            if mapping_times % commit_freq == 0:
+                print(f"commit at {mapping_times}")
+                filtered_rxn_con.commit()
 
     tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
     for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list, tmp_mapping_rxn_list):
