@@ -755,7 +755,7 @@ if __name__ == "__main__":
     #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
-    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
@@ -763,4 +763,4 @@ if __name__ == "__main__":
     #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
     #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
     #filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
-    #eda_filtered_rxn(f"{data_dir}/rn_filtered.sqlite")
+    eda_filtered_rxn(f"{data_dir}/rn_filtered.sqlite")
