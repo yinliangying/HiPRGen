@@ -32,6 +32,12 @@ logging.basicConfig(
 
 def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
 
+    if mol_charge<0:
+        charge_sign=-1
+    elif mol_charge>0:
+        charge_sign=1
+    else:
+        charge_sign=0
 
     star_atom_num=0
     for idx, atom in enumerate(rd_mol.GetAtoms()):
@@ -60,7 +66,7 @@ def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
             if (mol_charge == 0 and star_atom_num == 0):
                 return rd_mol,True,star_atom_num
             else:
-                charge_sign = -1 if mol_charge < 0 else 1
+
                 for idx, atom in enumerate(rd_mol.GetAtoms()):
                     atom_num = atom.GetAtomicNum()
                     if atom_num == 3:
@@ -71,7 +77,25 @@ def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
                         rd_mol.GetAtomWithIdx(idx).SetFormalCharge(charge_sign)
                 return rd_mol,True,star_atom_num
 
-    else:
+    else:#人工制定策略分配
+        rest_charge=mol_charge
+        for idx, atom in enumerate(rd_mol.GetAtoms()):
+            atom_num = atom.GetAtomicNum()
+            if atom_num == 3:
+                continue
+            typical_valence = Chem.GetPeriodicTable().GetDefaultValence(atom.GetAtomicNum())
+            actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
+
+            if actual_valence < typical_valence:
+                if rest_charge!=0:
+                    if rest_charge>0:
+                        rd_mol.GetAtomWithIdx(idx).SetFormalCharge(charge_sign)
+                        rest_charge-=1
+                    elif rest_charge<0:
+                        rd_mol.GetAtomWithIdx(idx).SetFormalCharge(charge_sign)
+                        rest_charge+=1
+                else:
+                    rd_mol.GetAtomWithIdx(idx).SetNumRadicalElectrons(int(typical_valence - actual_valence))
 
         return rd_mol,False,star_atom_num
 def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
@@ -755,7 +779,7 @@ if __name__ == "__main__":
     #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
-    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
