@@ -123,20 +123,6 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
             # Convert OBMol to RDKit Mol
             rdkit_mol = obmol_to_rdkit_mol(obmol)
 
-
-            for idx, atom in enumerate(rdkit_mol.GetAtoms()):
-                atom_num = atom.GetAtomicNum()
-                if atom_num == 3:
-                    continue
-                typical_valence = Chem.GetPeriodicTable().GetDefaultValence(atom.GetAtomicNum())
-                actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
-                if actual_valence < typical_valence:
-                    symbol = atom.GetSymbol()
-                    if symbol not in atom_symbol_dict:
-                        atom_symbol_dict[symbol] = 0
-                    atom_symbol_dict[symbol] += 1
-                    continue
-
             # Set charge and spin multiplicity
             rdkit_mol.SetProp("_Name", f"Molecule {idx}")
             rdkit_mol.SetProp("Charge", str(a_mol.charge))
