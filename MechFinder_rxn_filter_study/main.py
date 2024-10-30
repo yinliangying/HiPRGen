@@ -165,6 +165,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
 
     # Load smiles
     id_smiles_dict = {}
+
     smiles_id_dict = {}
     smi_df= pd.read_csv(smi_csv_path)
     for i, row in tqdm(smi_df.iterrows(),total=smi_df.shape[0]):
