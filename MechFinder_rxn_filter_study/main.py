@@ -149,7 +149,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         well_define = int(row["well_define"])
         mol_charge = int(row["mol_charge"])
         star_atom_num=int(row["star_atom_num"])
-        if well_define==1 and mol_charge==0 and star_atom_num==0:
+        if True:#if well_define==1 and mol_charge==0 and star_atom_num==0:
             id_smiles_dict[mol_id] = smiles
             smiles_id_dict[smiles] = mol_id
     logger.info(f"smiles_id_dict length:{len(smiles_id_dict)}")
