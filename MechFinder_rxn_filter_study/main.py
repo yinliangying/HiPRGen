@@ -72,6 +72,7 @@ def set_radical_electrons(rd_mol, mol_charge): #mol_charge 0 -1 +1
                 return rd_mol,True,star_atom_num
 
     else:
+
         return rd_mol,False,star_atom_num
 def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
     """
@@ -81,6 +82,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
     with open(pickle_path, 'rb') as f:
         f_data = pickle.load(f)
 
+    atom_symbol_dict = {}
     with open(output_smi_csv_path,"w") as fp_out:
         print("idx,smiles,well_define,mol_charge,star_atom_num",file=fp_out)
         for idx, a_mol_info in enumerate(f_data):
@@ -96,6 +98,20 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
 
             # Convert OBMol to RDKit Mol
             rdkit_mol = obmol_to_rdkit_mol(obmol)
+
+
+            for idx, atom in enumerate(rdkit_mol.GetAtoms()):
+                atom_num = atom.GetAtomicNum()
+                if atom_num == 3:
+                    continue
+                typical_valence = Chem.GetPeriodicTable().GetDefaultValence(atom.GetAtomicNum())
+                actual_valence = sum([bond.GetBondTypeAsDouble() for bond in atom.GetBonds()])
+                if actual_valence < typical_valence:
+                    symbol = atom.GetSymbol()
+                    if symbol not in atom_symbol_dict:
+                        atom_symbol_dict[symbol] = 0
+                    atom_symbol_dict[symbol] += 1
+                    continue
 
             # Set charge and spin multiplicity
             rdkit_mol.SetProp("_Name", f"Molecule {idx}")
@@ -115,6 +131,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
                 continue
             print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num}",file=fp_out)
 
+        print(atom_symbol_dict)
 def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: str):
     """
        目前只考虑无自由基无净电荷分子
@@ -738,7 +755,7 @@ if __name__ == "__main__":
     #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
-    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
@@ -746,4 +763,4 @@ if __name__ == "__main__":
     #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
     #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
     #filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
-    eda_filtered_rxn(f"{data_dir}/rn_filtered.sqlite")
+    #eda_filtered_rxn(f"{data_dir}/rn_filtered.sqlite")
