@@ -275,12 +275,12 @@ def main():
     rxn_db_path = sys.argv[2]
     filtered_rxn_db_path_path = sys.argv[3]
     dispatcher_worker_process=DispatcherWorkerProcess(mol_entries_path,rxn_db_path,filtered_rxn_db_path_path)
-    #MPItask( dispatcher_worker_process)
-    gen=dispatcher_worker_process.data_gen()
-    while True:
-        #input_batch=test_yield()
-        input_batch = next(gen)
-        print(input_batch)
+    MPItask( dispatcher_worker_process)
+    # gen=dispatcher_worker_process.data_gen()
+    # while True:
+    #     #input_batch=test_yield()
+    #     input_batch = next(gen)
+    #     print(input_batch)
 
 
 
