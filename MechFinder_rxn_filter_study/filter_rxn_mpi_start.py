@@ -12,13 +12,14 @@ logging.basicConfig(
 
 
 
-number_of_threads = os.popen("nproc").read().strip()
+number_of_threads = str(int(int(os.popen("nproc").read().strip())*1.5))
 logger.info(f"number_of_threads:{number_of_threads}")
 
 subprocess.run(
     [
         'mpirun',
-        '--use-hwthread-cpus',
+        #'--use-hwthread-cpus',
+        "--oversubscribe",
         '-n',
         number_of_threads,
         'python',
