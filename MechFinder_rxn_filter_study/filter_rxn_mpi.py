@@ -130,20 +130,19 @@ class DispatcherWorkerProcess():
         self.mapper = localmapper("cpu")
 
     def worker_run(self,input_batch):
+        tmp_mapping_row_list, tmp_mapping_rxn_list = input_batch
         try:
-            result=self.mapper.get_atom_map(input_batch, return_dict=True)
+            result=self.mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
         except:
             logger.error(f"worker_run error ")
             logger.error(str(input_batch))
             logger.error(traceback.format_exc())
             result=None
-        data=(input_batch,result)
+        data=(tmp_mapping_row_list, tmp_mapping_rxn_list,result)
         return data
 
     def post_process(self,data):
-        input_batch=data[0]
-        tmp_mapping_row_list, tmp_mapping_rxn_list = input_batch
-        tmp_result_list=data[1]
+        tmp_mapping_row_list, tmp_mapping_rxn_list, tmp_result_list=data
         if tmp_result_list==None:
             return
         for tmp_row,tmp_rxn, tmp_result in zip(tmp_mapping_row_list,tmp_mapping_rxn_list, tmp_result_list):
