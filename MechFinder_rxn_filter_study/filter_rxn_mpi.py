@@ -124,6 +124,9 @@ class DispatcherWorkerProcess():
             if len(tmp_mapping_row_list) == self.mapping_batch_size:
                 input_batch = (tmp_mapping_row_list, tmp_mapping_rxn_list)
                 yield input_batch
+                tmp_mapping_row_list = []
+                tmp_mapping_rxn_list=[]
+
 
         input_batch = (tmp_mapping_row_list, tmp_mapping_rxn_list)
         yield input_batch
@@ -207,7 +210,7 @@ class MPItask():
         else:
             self.worker()
     def dispatcher(self,):
-
+        gen=self.dispatcher_worker_process.data_gen()
         self.dispatcher_worker_process.init_dispatcher()
 
         worker_states = {}
@@ -232,7 +235,7 @@ class MPItask():
 
             if tag == self.SEND_ME_A_WORK_BATCH:
                 try:
-                    input_batch = next(self.dispatcher_worker_process.data_gen())
+                    input_batch = next(gen)
                 except StopIteration:
                     # 生成器结束，处理结束逻辑
                     logger.info("生成器已结束，没有更多数据可生成")
@@ -259,6 +262,12 @@ class MPItask():
                 dest=self.DISPATCHER_RANK,
                 tag=self.NEW_REACTION_DB)
 
+#
+# def test_yield():
+#     print("init")
+#     for i in range(1000000):
+#         yield i
+#     yield "end"
 
 
 def main():
@@ -266,7 +275,13 @@ def main():
     rxn_db_path = sys.argv[2]
     filtered_rxn_db_path_path = sys.argv[3]
     dispatcher_worker_process=DispatcherWorkerProcess(mol_entries_path,rxn_db_path,filtered_rxn_db_path_path)
-    MPItask( dispatcher_worker_process)
+    #MPItask( dispatcher_worker_process)
+    gen=dispatcher_worker_process.data_gen()
+    while True:
+        #input_batch=test_yield()
+        input_batch = next(gen)
+        print(input_batch)
+
 
 
 if __name__ == "__main__":

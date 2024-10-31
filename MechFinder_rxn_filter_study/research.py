@@ -141,7 +141,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
                 continue
             print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num}",file=fp_out)
 
-        print(atom_symbol_dict)
+        #print(atom_symbol_dict)
 def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: str):
     """
        目前只考虑无自由基无净电荷分子
