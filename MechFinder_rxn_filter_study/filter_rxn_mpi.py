@@ -23,7 +23,8 @@ logging.basicConfig(
 class DispatcherWorkerProcess():
     def __init__(self,mol_entries_path, rxn_db_path, filtered_rxn_db_path_path  ):
         self.cnt=0
-        self.cmt_freq=100
+        self.cmt_freq=1
+        self.mapping_batch_size=10
         self.filtered_rxn_db_path_path=filtered_rxn_db_path_path
         self.mol_entries_path=mol_entries_path
         self.rxn_db_path=rxn_db_path
@@ -79,7 +80,7 @@ class DispatcherWorkerProcess():
         rn_cur.execute(
             f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2, "
             f"rate,dG,dG_barrier,is_redox from reactions")
-        mapping_batch_size = 1000
+
 
         tmp_mapping_row_list = []
         tmp_mapping_rxn_list = []
@@ -120,7 +121,7 @@ class DispatcherWorkerProcess():
             tmp_mapping_rxn_list.append(rxn_smiles)
             tmp_mapping_row_list.append(row)
 
-            if len(tmp_mapping_row_list) == mapping_batch_size:
+            if len(tmp_mapping_row_list) == self.mapping_batch_size:
                 input_batch = (tmp_mapping_row_list, tmp_mapping_rxn_list)
                 yield input_batch
 
