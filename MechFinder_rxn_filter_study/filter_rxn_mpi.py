@@ -23,8 +23,8 @@ logging.basicConfig(
 class DispatcherWorkerProcess():
     def __init__(self,mol_entries_path, rxn_db_path, filtered_rxn_db_path_path  ):
         self.cnt=0
-        self.cmt_freq=1
-        self.mapping_batch_size=10
+        self.cmt_freq=100
+        self.mapping_batch_size=1000
         self.filtered_rxn_db_path_path=filtered_rxn_db_path_path
         self.mol_entries_path=mol_entries_path
         self.rxn_db_path=rxn_db_path
