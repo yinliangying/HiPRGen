@@ -11,7 +11,14 @@ from tqdm import tqdm
 
 
 
-def split_rxn_db(original_rxn_db_path,split_num,output_dir):
+def tmp():
+    input_root_dir=f"/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_input/libe_and_fmol_0911_rn_filter/"
+    split_num=40
+    for split_id in range(split_num):
+        split_task_input_dir = f"{input_root_dir}/{split_num}_{split_id}"
+        os.system(f"mv {input_root_dir}/{split_id}_rn.sqlite  {split_task_input_dir}")
+
+def split_rxn_db(original_rxn_db_path, split_num, input_root_dir):
 
     # 连接到 SQLite 数据库
     ori_conn = sqlite3.connect(original_rxn_db_path)
@@ -26,10 +33,11 @@ def split_rxn_db(original_rxn_db_path,split_num,output_dir):
     print(f"Each split table will have {split_table_rows} rows")
     ori_offset = 0
     for split_id in range(split_num):
-        if os.path.exists(f"{output_dir}/{split_id}_rn.sqlite"):
-            print(f"{output_dir}/{split_id}_rn.sqlite exists")
+        split_task_input_dir = f"{input_root_dir}/{split_num}_{split_id}"
+        if os.path.exists(f"{split_task_input_dir}/{split_id}_rn.sqlite"):
+            print(f"{split_task_input_dir}/{split_id}_rn.sqlite exists")
             continue
-        split_conn=sqlite3.connect(f"{output_dir}/{split_id}_rn.sqlite")
+        split_conn=sqlite3.connect(f"{split_task_input_dir}/{split_id}_rn.sqlite")
         split_cursor = split_conn.cursor()
         print(f"Creating split table {split_id}")
         split_cursor.execute("""
@@ -67,7 +75,7 @@ def split_rxn_db(original_rxn_db_path,split_num,output_dir):
 
 
 
-def submit_task(machine_num, input_dir, output_root_dir, image_name):
+def submit_task(machine_num, input_root_dir, output_root_dir, image_name):
 
 
 
@@ -77,12 +85,14 @@ def submit_task(machine_num, input_dir, output_root_dir, image_name):
             continue
 
         split_task_output_dir = f"{output_root_dir}/{machine_num}_{machine_id}"
-        if os.path.exists(split_task_output_dir):
-            print(f"split_task_output_dir exists")
-            continue
-
+        split_task_input_dir = f"{input_root_dir}/{machine_num}_{machine_id}"
         split_rxn_db_input_filename = f"rn_{machine_id}.sqlite"
         split_filtered_rxn_db_output_filename= f"rn_filtered_{machine_id}.sqlite"
+        json_params_file_path = f"{split_task_input_dir}/lbg_task_{machine_num}_{machine_id}.json"
+        if os.path.exists(split_task_output_dir):
+            print(f"split_task_output_dir:{split_task_output_dir} exists")
+            continue
+
         python_str=f" python /root/HiPRGen/MechFinder_rxn_filter_study/filter_rxn_mpi_start.py  {split_rxn_db_input_filename} {split_filtered_rxn_db_output_filename} "
         lbg_task_json_dict={
                 "job_name": f"hiprgen_rn_filter_libe_fmol_{machine_num}_{machine_id}",
@@ -92,10 +102,9 @@ def submit_task(machine_num, input_dir, output_root_dir, image_name):
                 "machine_type": "c128_m512_cpu",
                 "image_name": image_name,
                 "program_id": 14480,
-                "input":input_dir,
+                "input":split_task_input_dir,
                 "result":split_task_output_dir,
         }
-        json_params_file_path=f"{input_dir}/lbg_task_{machine_num}_{machine_id}.json"
         json.dump(lbg_task_json_dict, open(json_params_file_path, "w"), indent=2)
         print(json.dumps(lbg_task_json_dict, indent=2))
         shell_str=f"lbg job submit -i {json_params_file_path}"
@@ -146,10 +155,10 @@ def post_process(machine_num, output_root_dir, ):
 
 
 def main():
-    machine_num = 30
-    input_dir = "/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_input/libe_and_fmol_0911_rn_filter/"
-    if not os.path.exists(input_dir):
-        os.makedirs(input_dir)
+    machine_num = 40
+    input_root_dir = "/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_input/libe_and_fmol_0911_rn_filter/"
+    if not os.path.exists(input_root_dir):
+        os.makedirs(input_root_dir)
     output_root_dir = "/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_rn_filter/"
     if not os.path.exists(output_root_dir):
         os.makedirs(output_root_dir)
@@ -157,9 +166,9 @@ def main():
     image_name = "registry.dp.tech/dptech/prod-17396/hiprgen:20241101"
     original_rxn_db_path = f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
 
-    split_rxn_db(original_rxn_db_path, machine_num, input_dir)
+    split_rxn_db(original_rxn_db_path, machine_num, input_root_dir)
 
-    submit_task(machine_num, input_dir, output_root_dir, image_name)
+    submit_task(machine_num, input_root_dir, output_root_dir, image_name)
     #post_process(machine_num, output_root_dir)
 
 
