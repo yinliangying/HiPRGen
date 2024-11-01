@@ -17,9 +17,9 @@ def split_rxn_db(original_rxn_db_path,split_num,output_dir):
     ori_conn = sqlite3.connect(original_rxn_db_path)
     ori_cursor = ori_conn.cursor()
     # 计算原表的行数
-    # ori_cursor.execute(f"SELECT COUNT(*) FROM reactions")
-    # total_rows = ori_cursor.fetchone()[0]
-    total_rows = 956946513
+    ori_cursor.execute(f"SELECT COUNT(*) FROM reactions")
+    total_rows = ori_cursor.fetchone()[0]
+    #total_rows = 956946513
     print(f"Total number of rows in original table: {total_rows}")
     # 计算每个新表应该有多少行
     split_table_rows = total_rows // split_num
@@ -44,7 +44,7 @@ def split_rxn_db(original_rxn_db_path,split_num,output_dir):
                     rate                REAL NOT NULL,
                     dG                  REAL NOT NULL,
                     dG_barrier          REAL NOT NULL,
-                    is_redox            INTEGER NOT NULL,
+                    is_redox            INTEGER NOT NULL
                   
             );
         """)

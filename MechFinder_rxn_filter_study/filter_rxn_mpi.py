@@ -135,47 +135,49 @@ class DispatcherWorkerProcess():
 
     def worker_run(self,input_batch):
         tmp_mapping_row_list, tmp_mapping_rxn_list = input_batch
+        result_list=[]
         try:
-            result=self.mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
+            mapping_result=self.mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
+
+            for tmp_row, tmp_rxn, tmp_result in zip(tmp_mapping_row_list, tmp_mapping_rxn_list, mapping_result):
+                if tmp_result["confident"] == True:
+                    template = tmp_result["template"]
+                    mapped_rxn = tmp_result["mapped_rxn"]
+                    rxn_reactant, rxn_product = mapped_rxn.split(">>")
+                    rxn_reactant_num = len(rxn_reactant.split("."))
+                    rxn_product_num = len(rxn_product.split("."))
+                    template_reactant, template_product = template.split(">>")
+                    template_reactant_num = len(template_reactant.split("."))
+                    template_product_num = len(template_product.split("."))
+                    if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
+                        sql_data = list(tmp_row) + [template, mapped_rxn, tmp_rxn]
+                        result_list.append(sql_data)
         except:
             logger.error(f"worker_run error ")
             logger.error(str(input_batch))
             logger.error(traceback.format_exc())
-            result=None
-        data=(tmp_mapping_row_list, tmp_mapping_rxn_list,result)
-        return data
+            result_list=None
 
-    def post_process(self,data):
-        tmp_mapping_row_list, tmp_mapping_rxn_list, tmp_result_list=data
-        if tmp_result_list==None:
+        return result_list
+
+    def post_process(self, result_list):
+        if result_list==None:
             return
-        for tmp_row,tmp_rxn, tmp_result in zip(tmp_mapping_row_list,tmp_mapping_rxn_list, tmp_result_list):
-            if tmp_result["confident"] == True:
-                template = tmp_result["template"]
-                mapped_rxn = tmp_result["mapped_rxn"]
-                rxn_reactant, rxn_product = mapped_rxn.split(">>")
-                rxn_reactant_num = len(rxn_reactant.split("."))
-                rxn_product_num = len(rxn_product.split("."))
-                template_reactant, template_product = template.split(">>")
-                template_reactant_num = len(template_reactant.split("."))
-                template_product_num = len(template_product.split("."))
-                if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
-                    filtered_sql_str = f"""
-                                insert into reactions 
-                                (reaction_id, number_of_reactants,number_of_products,reactant_1,  reactant_2,  product_1,   product_2,  rate,         dG,          dG_barrier,  is_redox,
-                                template,mapped_rxn,rxn)
-                                 values 
-                                (?,?,?,?,?,?,?,?,?,?,?,
-                                ?,?,?)
-                                """
-                    sql_data = list(tmp_row) + [template, mapped_rxn, tmp_rxn]
-                    try:
-                        self.filtered_rxn_cur.execute(filtered_sql_str, sql_data)
-                    except:
-
-                        logger.error(traceback.format_exc())
-                        logger.error(str(sql_data))
-                        continue
+        filtered_sql_str = f"""
+                    insert into reactions 
+                    (reaction_id, number_of_reactants,number_of_products,reactant_1,  reactant_2,  product_1,   product_2,  rate,         dG,          dG_barrier,  is_redox,
+                    template,mapped_rxn,rxn)
+                     values 
+                    (?,?,?,?,?,?,?,?,?,?,?,
+                    ?,?,?)
+                    """
+        for sql_data in result_list:
+            try:
+                self.filtered_rxn_cur.execute(filtered_sql_str, sql_data)
+            except:
+                logger.error(traceback.format_exc())
+                logger.error(str(sql_data))
+                continue
         self.cnt+=1
         if self.cnt%self.cmt_freq==0:
             self.filtered_rxn_con.commit()
