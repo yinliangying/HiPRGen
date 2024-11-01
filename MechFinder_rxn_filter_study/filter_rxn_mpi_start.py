@@ -15,6 +15,9 @@ logging.basicConfig(
 number_of_threads = str(int(int(os.popen("nproc").read().strip())*1.5))
 logger.info(f"number_of_threads:{number_of_threads}")
 
+rxn_db_path=sys.argv[1]#f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
+filtered_rxn_db_path_path=sys.argv[2]#f"rn_filtered.sqlite"
+
 subprocess.run(
     [
         'mpirun',
@@ -25,7 +28,7 @@ subprocess.run(
         'python',
         '/root/HiPRGen/MechFinder_rxn_filter_study/filter_rxn_mpi.py',
         f"/root/HiPRGen/data/libe_and_fmol_0911_all/mol_entries.pickle",
-        f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
-        f"rn_filtered.sqlite"
+        rxn_db_path,
+        filtered_rxn_db_path_path
     ]
 )

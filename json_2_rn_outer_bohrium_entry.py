@@ -1,4 +1,4 @@
-#  启动路径 /personal/Bohrium_task_hiprgen_rn
+#  放置到路径 /personal/Bohrium_task_hiprgen_rn
 import json
 import os
 import shutil
