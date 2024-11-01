@@ -182,6 +182,8 @@ class DispatcherWorkerProcess():
         if self.cnt%self.cmt_freq==0:
             self.filtered_rxn_con.commit()
             logger.info(f"commit {self.cnt}")
+    def final(self):
+        self.filtered_rxn_con.commit()
 
 
 class MPItask():
@@ -227,7 +229,6 @@ class MPItask():
 
         while True:
             if self.WorkerState.RUNNING not in worker_states.values():
-                time.sleep(1)
                 break
 
             status = MPI.Status()
@@ -249,7 +250,7 @@ class MPItask():
             elif tag == self.NEW_REACTION_DB:
                 self.dispatcher_worker_process.post_process(data)
 
-
+        self.dispatcher_worker_process.final()
     def worker(self):
 
         self.comm.send(None, dest=self.DISPATCHER_RANK, tag=self.INITIALIZATION_FINISHED)

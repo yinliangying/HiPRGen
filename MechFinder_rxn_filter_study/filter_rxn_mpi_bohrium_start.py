@@ -57,7 +57,7 @@ def split_rxn_db(original_rxn_db_path,split_num,output_dir):
         ori_cursor.execute(orl_sql_str)
         for row in tqdm(ori_cursor):
             split_cursor.execute("INSERT INTO reactions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", row)
-
+        split_conn.commit()
         split_conn.close()
         ori_offset += split_table_rows
 
@@ -139,10 +139,10 @@ def post_process(machine_num, output_root_dir, ):
 
         for row in tqdm(split_cur):
             all_rn_cur.execute("INSERT INTO reactions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", row)
-            all_rn_conn.commit()
-
+        all_rn_conn.commit()
         split_conn.close()
-        all_rn_conn.close()
+
+    all_rn_conn.close()
 
 
 def main():
