@@ -33,11 +33,15 @@ def split_rxn_db(original_rxn_db_path, split_num, input_root_dir):
     print(f"Each split table will have {split_table_rows} rows")
     ori_offset = 0
     for split_id in range(split_num):
+        split_rxn_db_input_filename=f"{split_id}_rn.sqlite"
         split_task_input_dir = f"{input_root_dir}/{split_num}_{split_id}"
-        if os.path.exists(f"{split_task_input_dir}/{split_id}_rn.sqlite"):
-            print(f"{split_task_input_dir}/{split_id}_rn.sqlite exists")
+
+        if not os.path.exists(split_task_input_dir):
+            os.makedirs(split_task_input_dir)
+        if os.path.exists(f"{split_task_input_dir}/{split_rxn_db_input_filename}"):
+            print(f"{split_task_input_dir}/{split_rxn_db_input_filename} exists")
             continue
-        split_conn=sqlite3.connect(f"{split_task_input_dir}/{split_id}_rn.sqlite")
+        split_conn=sqlite3.connect(f"{split_task_input_dir}/{split_rxn_db_input_filename}")
         split_cursor = split_conn.cursor()
         print(f"Creating split table {split_id}")
         split_cursor.execute("""
@@ -86,13 +90,13 @@ def submit_task(machine_num, input_root_dir, output_root_dir, image_name):
 
         split_task_output_dir = f"{output_root_dir}/{machine_num}_{machine_id}"
         split_task_input_dir = f"{input_root_dir}/{machine_num}_{machine_id}"
-        split_rxn_db_input_filename = f"rn_{machine_id}.sqlite"
+        split_rxn_db_input_filename = f"{machine_id}_rn.sqlite"
         split_filtered_rxn_db_output_filename= f"rn_filtered_{machine_id}.sqlite"
         json_params_file_path = f"{split_task_input_dir}/lbg_task_{machine_num}_{machine_id}.json"
+
         if os.path.exists(split_task_output_dir):
             print(f"split_task_output_dir:{split_task_output_dir} exists")
             continue
-
         python_str=f" python /root/HiPRGen/MechFinder_rxn_filter_study/filter_rxn_mpi_start.py  {split_rxn_db_input_filename} {split_filtered_rxn_db_output_filename} "
         lbg_task_json_dict={
                 "job_name": f"hiprgen_rn_filter_libe_fmol_{machine_num}_{machine_id}",
