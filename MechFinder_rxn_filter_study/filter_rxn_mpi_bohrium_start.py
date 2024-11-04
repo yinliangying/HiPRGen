@@ -158,9 +158,11 @@ def post_process(machine_num, output_root_dir, ):
     all_rn_conn.close()
 
 def run_hiprgen():
-
+    output_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_rn_filter_hiprgen_output/"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     bohrium_params_json_dict ={
-        "output_dir": "/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_rn_filter_hiprgen_output/",
+        "output_dir": output_dir,
         "Input_Format": {
         "type": "ID",
         "main_mol_id": 13589 ,
