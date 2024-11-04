@@ -749,8 +749,8 @@ def find_mol(smiles_csv_file:str):
 
             try:
                 #if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and count_elements_dict["F"]==2:
-                if net_charge==0 and well_define==1 and not has_radical and has_five_membered_ring and ring_count==1 and \
-                        count_elements_dict["C"]==3 and count_elements_dict["O"]==3 and count_elements_dict["F"]==1  \
+                if net_charge==0 and well_define==1 and not has_radical  and ring_count==1 and \
+                        count_elements_dict["C"]==7 and count_elements_dict["O"]==1 and count_elements_dict["F"]==1  \
                         and "Li" not in count_elements_dict and "P" not in count_elements_dict:
                     print(f"{mol_id},{smiles},{well_define}")
                     draw_molecule(smiles,f"{output_dir}/{mol_id}.png")
@@ -763,15 +763,15 @@ if __name__ == "__main__":
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
-    #find_mol(f"{data_dir}smiles.csv")
+    find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
 
-    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
     #mapping_rxn(f"{data_dir}rxn_smarts.csv",f"{data_dir}rxn_smarts_mapped.csv")
     #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
     #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
-    filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
+    #filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
     #eda_filtered_rxn(f"{data_dir}/rn_filtered.sqlite")

@@ -157,6 +157,25 @@ def post_process(machine_num, output_root_dir, ):
 
     all_rn_conn.close()
 
+def run_hiprgen():
+
+    bohrium_params_json_dict ={
+        "output_dir": "/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_rn_filter_hiprgen_output/",
+        "Input_Format": {
+        "type": "ID",
+        "main_mol_id": params["init_molecule_id_finded"] ,
+        "sub_mol_ids": params["additional_molecule_id"],
+        "n_sim": 1000,
+        "database_dir":"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter",#"/root/HiPRGen/data/new_libe_fmol_20240731",#"/root/HiPRGen/data/libe",#"/root/HiPRGen/data/new_libe_fmol_20240731",
+        },
+    }
+    json.dump(bohrium_params_json_dict, open(f"app_param.json", "w"), indent=2)
+    print(json.dumps(bohrium_params_json_dict, indent=2))
+
+    command=" python /root/HiPRGen/hiprgen_mol_query_bohrium_entry.py  "
+    os.system(command)
+
+
 
 def main():
     machine_num = 40
