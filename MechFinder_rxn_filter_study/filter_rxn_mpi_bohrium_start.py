@@ -163,8 +163,8 @@ def run_hiprgen():
         "output_dir": "/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_rn_filter_hiprgen_output/",
         "Input_Format": {
         "type": "ID",
-        "main_mol_id": params["init_molecule_id_finded"] ,
-        "sub_mol_ids": params["additional_molecule_id"],
+        "main_mol_id": 13589 ,
+        "sub_mol_ids":[3274,14191,145],
         "n_sim": 1000,
         "database_dir":"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter",#"/root/HiPRGen/data/new_libe_fmol_20240731",#"/root/HiPRGen/data/libe",#"/root/HiPRGen/data/new_libe_fmol_20240731",
         },
@@ -189,11 +189,10 @@ def main():
     image_name = "registry.dp.tech/dptech/prod-17396/hiprgen:20241101"
     original_rxn_db_path = f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
 
-    split_rxn_db(original_rxn_db_path, machine_num, input_root_dir)
-
-    submit_task(machine_num, input_root_dir, output_root_dir, image_name)
+    #split_rxn_db(original_rxn_db_path, machine_num, input_root_dir)
+    #submit_task(machine_num, input_root_dir, output_root_dir, image_name)
     #post_process(machine_num, output_root_dir)
-
+    run_hiprgen()
 
 if __name__ == '__main__':
     main()
