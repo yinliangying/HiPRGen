@@ -174,7 +174,7 @@ def run_hiprgen():
     json.dump(bohrium_params_json_dict, open(f"app_param.json", "w"), indent=2)
     print(json.dumps(bohrium_params_json_dict, indent=2))
 
-    command=" python /root/HiPRGen/hiprgen_mol_query_bohrium_entry.py  "
+    command="  python /root/HiPRGen/hiprgen_kmc_bohrium_entry.py kMC_pathfinding --json-config app_param.json  "
     os.system(command)
 
 
