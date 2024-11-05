@@ -669,7 +669,7 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
 
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2 from "
-        f"reactions where  number_of_reactants=2 and number_of_products=1 and  product_1=13203 ") #and (reactant_1=13590 or reactant_2=13590)
+        f"reactions where  reactant_1=13589 or reactant_2=13589 ") #and (reactant_1=13590 or reactant_2=13590)
 
     for row in tqdm(rn_cur):
         reaction_id = row[0]
@@ -763,10 +763,11 @@ if __name__ == "__main__":
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
-    find_mol(f"{data_dir}smiles.csv")
-    #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite")
+    #find_mol(f"{data_dir}smiles.csv")
+    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
 
-    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
