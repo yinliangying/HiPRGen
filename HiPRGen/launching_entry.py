@@ -1,3 +1,5 @@
+import sys
+
 from pdf2image import convert_from_path
 import os
 import pickle
@@ -100,6 +102,7 @@ def run_with_id(main_mol_id: int, sub_mol_ids: list, output_dir: str, simulation
             os.chdir(output_dir)
             with open('No match reaction id for input', 'w') as f:
                 pass
+            print(f"No match reaction id for input",file=sys.stderr)
             os.chdir(cwd_)
             return
 
