@@ -97,12 +97,13 @@ def run_with_id(main_mol_id: int, sub_mol_ids: list, output_dir: str, simulation
     mol_picture_folder_path = default_file_paths['mol_picture_folder_path']
     rn_db_path = default_file_paths['rn_db_path']
     for sub_mol_id in sub_mol_ids:
+        print(f"Checking reaction id for input: {main_mol_id} and {sub_mol_id}")
         match_flag = chk_ids_with_rn_db(main_mol_id=main_mol_id, sub_mol_id=sub_mol_id, rn_db_path=rn_db_path)
         if not match_flag:
             os.chdir(output_dir)
             with open('No match reaction id for input', 'w') as f:
                 pass
-            print(f"No match reaction id for input",file=sys.stderr)
+            print(f"No reactions found with reactant_id",file=sys.stderr)
             os.chdir(cwd_)
             return
 
