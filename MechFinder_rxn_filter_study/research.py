@@ -805,7 +805,7 @@ def eda_filter_rxn(file):
     for line in fp:
         reaction_id, rxn_smarts, rxn_id_rxn_str = line.strip().split(",")
 
-        tmp_result_list = mapper.get_atom_map([rxn_id_rxn_str], return_dict=True)
+        tmp_result_list = mapper.get_atom_map([rxn_smarts], return_dict=True)
 
         # mapping_times += 1
 
