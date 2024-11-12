@@ -816,6 +816,8 @@ def eda_filter_rxn(file):
 
         tmp_result = tmp_result_list[0]
         template = tmp_result["template"]
+        if tmp_result["confident"]==True:
+            continue
         if not template:
             continue
         mapped_rxn = tmp_result["mapped_rxn"]
@@ -826,8 +828,8 @@ def eda_filter_rxn(file):
         template_reactant_num = len(template_reactant.split("."))
         template_product_num = len(template_product.split("."))
         if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
-            print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}",file=fp_out)
-            #draw_reaction_with_template(rxn_smarts, 300, 300, mapped_rxn,template, reaction_id, output_dir)
+            #print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}",file=fp_out)
+            draw_reaction_with_template(rxn_smarts, 300, 300, mapped_rxn,template, reaction_id, output_dir)
 
 if __name__ == "__main__":
 
