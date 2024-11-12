@@ -783,19 +783,10 @@ def find_reaction_in_db_with_template(filtered_rxn_db_path_path):
     sql_str = f"select  reaction_id,template,mapped_rxn,rxn  from " \
               f"reactions where  reactant_1=13589 or reactant_2=13589 "
     filtered_rxn_cur.execute(sql_str)
-    template_dict = {}
     for reaction_id, mapped_reaction_template_smarts, mapped_reaction_smiles, rxn_smarts in tqdm(filtered_rxn_cur,
                                                                                                  total=number_of_reactions):
-
-        if mapped_reaction_template_smarts not in template_dict:
-            template_dict[mapped_reaction_template_smarts] = 0
-        template_dict[mapped_reaction_template_smarts] += 1
-        if template_dict[mapped_reaction_template_smarts] <= 1:
-            if_draw = True
-        else:
-            if_draw = False
-        if if_draw:
-            draw_reaction_with_template(rxn_smarts, width_mol, height_mol, mapped_reaction_smiles,
+        print(f"{reaction_id},{rxn_smarts}")
+        draw_reaction_with_template(rxn_smarts, width_mol, height_mol, mapped_reaction_smiles,
                                         mapped_reaction_template_smarts, reaction_id, output_dir)
 
 
