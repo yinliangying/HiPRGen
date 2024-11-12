@@ -764,7 +764,7 @@ if __name__ == "__main__":
     mol_entries_file=f"{data_dir}mol_entries.pickle"
 
     #find_mol(f"{data_dir}smiles.csv")
-    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
 
 
