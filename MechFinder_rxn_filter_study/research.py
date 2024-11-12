@@ -804,7 +804,7 @@ def eda_filter_rxn(file):
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.mkdir(output_dir)
-
+    fp_out=open(f"{file}_2","w")
     fp=open(file, "r")
     mapper = localmapper("cpu")
     for line in tqdm(fp,):
@@ -816,6 +816,8 @@ def eda_filter_rxn(file):
 
         tmp_result = tmp_result_list[0]
         template = tmp_result["template"]
+        if not template:
+            continue
         mapped_rxn = tmp_result["mapped_rxn"]
         rxn_reactant, rxn_product = mapped_rxn.split(">>")
         rxn_reactant_num = len(rxn_reactant.split("."))
@@ -824,9 +826,8 @@ def eda_filter_rxn(file):
         template_reactant_num = len(template_reactant.split("."))
         template_product_num = len(template_product.split("."))
         if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
-            print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}")
-            draw_reaction_with_template(rxn_smarts, 300, 300, mapped_rxn,
-                                        template, reaction_id, output_dir)
+            print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}",file=fp_out)
+            #draw_reaction_with_template(rxn_smarts, 300, 300, mapped_rxn,template, reaction_id, output_dir)
 
 if __name__ == "__main__":
 
