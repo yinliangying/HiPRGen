@@ -312,68 +312,6 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
 
     filtered_rxn_con.commit()
 
-def eda_filtered_rxn(filtered_rxn_db_path_path: str):
-
-    output_dir=f"{data_dir}tmp_rxn"
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    os.mkdir(output_dir)
-
-
-    filtered_rxn_con = sqlite3.connect(filtered_rxn_db_path_path)
-    filtered_rxn_cur = filtered_rxn_con.cursor()
-    sql_str="""
-    select count(*) from reactions
-    """
-    filtered_rxn_cur.execute(sql_str)
-    for (number_of_reactions,) in filtered_rxn_cur:
-        print(number_of_reactions)
-
-
-    height_mol = 300
-    width_mol = 300
-    sql_str="""select reaction_id,template,mapped_rxn,rxn from reactions"""
-    filtered_rxn_cur.execute(sql_str)
-    template_dict={}
-    for reaction_id,mapped_reaction_template_smarts,mapped_reaction_smiles,rxn_smarts in tqdm(filtered_rxn_cur,total=number_of_reactions):
-
-        if mapped_reaction_template_smarts not in template_dict:
-            template_dict[mapped_reaction_template_smarts]=0
-        template_dict[mapped_reaction_template_smarts] += 1
-        if template_dict[mapped_reaction_template_smarts]<=1:
-            if_draw = True
-        else:
-            if_draw = False
-        if if_draw:
-            pil_img_list=[]
-            img=draw_reaction(rxn_smarts,save=False)
-            img.resize((width_mol*5, height_mol))
-            pil_img_list.append(img)
-
-            rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
-            img = ReactionToImage(rxn)
-            img.resize((width_mol*5, height_mol))
-            pil_img_list.append(img)
-
-            try:
-                rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
-                img = ReactionToImage(rxn)
-                img.resize((width_mol*5, height_mol))
-                pil_img_list.append(img)
-            except:
-                pass
-
-            mode = pil_img_list[0].mode
-            # 创建一个空白画布，用于拼接图片
-            result = Image.new(mode, (width_mol * 5, height_mol*len(pil_img_list)), color=(255, 255, 255))  #
-            # 在画布上拼接图片
-            for img_idx, img in enumerate(pil_img_list):
-                if img is None:
-                    continue
-                result.paste(img, (0, height_mol * img_idx, ))
-
-            result.save(f"{output_dir}/{reaction_id}.png")
-
 def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file: str):
     """
     rn_db_path  exp:"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
@@ -452,15 +390,98 @@ def trans_rxn_db2smarts(smi_csv_path: str,rn_db_path: str,rxn_smarts_output_file
 
             print(f"{reaction_id},{rxn_smarts}",file=fp_out)
 
-def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
+# def mapping_rxn(rxn_smarts_file: str, mapped_rxn_smarts_output_file: str):
+#     """
+#     https://github.com/neo-chem-synth-wave/atom-to-atom-mapping
+#     """
+#     #add columns mapped_reaction_smiles,mapped_reaction_template_smarts,is_confident
+#     os.system(f"""python atom-to-atom-mapping/scripts/map_reaction_smiles_using_local_mapper.py \
+#      --batch_size 32 --input_csv_file_path {rxn_smarts_file}  \
+#      --reaction_smiles_column_name  rxn_smarts \
+#      --output_csv_file_path  {mapped_rxn_smarts_output_file}""")
+# def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
+#     #from rxnmapper import RXNMapper  这句话会导致MechFinder无法打印报错
+#     from MechFinder import MechFinder
+#     finder = MechFinder(collection_dir='MechFinder/collections')
+#     df=pd.read_csv(mapped_rxn_smarts_file)
+#
+#     output_dir=f"{data_dir}tmp_rxn"
+#     if os.path.exists(output_dir):
+#         shutil.rmtree(output_dir)
+#     os.mkdir(output_dir)
+#
+#     result_info_dict={}
+#     with open(mech_output_file, "w") as fp_out:
+#         print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
+#         # df = df[df['is_confident'] == "True"]
+#         for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
+#             if i%1000==0:
+#                 print(result_info_dict)
+#             if i>4:
+#                 break
+#             rxn_id=row["reaction_id"]
+#             mapped_rxn = row["mapped_reaction_smiles"]
+#             unmapped_rxn = row["rxn_smarts"]
+#             #mapping_confidence=row["confidence"]
+#
+#             try:
+#                 updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(mapped_rxn)
+#             except Exception as e :
+#                 if "except" not in result_info_dict:
+#                     result_info_dict["except"]=0
+#                 result_info_dict["except"]+=1
+#                 MT_class="except"
+#             else:
+#                 if MT_class not in result_info_dict:
+#                     result_info_dict[MT_class] = 0
+#                 result_info_dict[MT_class] += 1
+#                 if not isinstance(finder.check_exception(MT_class), str):
+#                     if MT_class!="mechanism not in collection":
+#                         print(f"{rxn_id},{mapped_rxn},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
+#             #print(MT_class)
+#             draw_reaction(mapped_rxn, f"{output_dir}/{rxn_id}.png")
+#             print(f"{rxn_id},{mapped_rxn},{unmapped_rxn},{MT_class}")
+#
+
+
+
+
+
+def eda_filtered_rxn(filtered_rxn_db_path_path: str):
+
+    output_dir=f"{data_dir}tmp_rxn"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
+
+
+    filtered_rxn_con = sqlite3.connect(filtered_rxn_db_path_path)
+    filtered_rxn_cur = filtered_rxn_con.cursor()
+    sql_str="""
+    select count(*) from reactions
     """
-    https://github.com/neo-chem-synth-wave/atom-to-atom-mapping
-    """
-    #add columns mapped_reaction_smiles,mapped_reaction_template_smarts,is_confident
-    os.system(f"""python atom-to-atom-mapping/scripts/map_reaction_smiles_using_local_mapper.py \
-     --batch_size 32 --input_csv_file_path {rxn_smarts_file}  \
-     --reaction_smiles_column_name  rxn_smarts \
-     --output_csv_file_path  {mapped_rxn_smarts_output_file}""")
+    filtered_rxn_cur.execute(sql_str)
+    for (number_of_reactions,) in filtered_rxn_cur:
+        print(number_of_reactions)
+
+
+    height_mol = 300
+    width_mol = 300
+    sql_str="""select reaction_id,template,mapped_rxn,rxn from reactions"""
+    filtered_rxn_cur.execute(sql_str)
+    template_dict={}
+    for reaction_id,mapped_reaction_template_smarts,mapped_reaction_smiles,rxn_smarts in tqdm(filtered_rxn_cur,total=number_of_reactions):
+
+        if mapped_reaction_template_smarts not in template_dict:
+            template_dict[mapped_reaction_template_smarts]=0
+        template_dict[mapped_reaction_template_smarts] += 1
+        if template_dict[mapped_reaction_template_smarts]<=1:
+            if_draw = True
+        else:
+            if_draw = False
+        if if_draw:
+            draw_reaction_with_template(rxn_smarts, width_mol, height_mol, mapped_reaction_smiles,
+                                        mapped_reaction_template_smarts, reaction_id, output_dir)
 
 def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
     df=pd.read_csv(mapped_rxn_smarts_file)
@@ -526,68 +547,6 @@ def eda_mapped_rxn_smarts(mapped_rxn_smarts_file: str):
 
             result.save(f"{output_dir}/{rxn_id}_{is_confident}.png")
 
-def apply_MechFinder(mapped_rxn_smarts_file: str, mech_output_file: str):
-    #from rxnmapper import RXNMapper  这句话会导致MechFinder无法打印报错
-    from MechFinder import MechFinder
-    finder = MechFinder(collection_dir='MechFinder/collections')
-    df=pd.read_csv(mapped_rxn_smarts_file)
-
-    output_dir=f"{data_dir}tmp_rxn"
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    os.mkdir(output_dir)
-
-    result_info_dict={}
-    with open(mech_output_file, "w") as fp_out:
-        print("reaction_id,rxn_str,updated_reaction,LRT,MT_class,electron_path",file=fp_out)
-        # df = df[df['is_confident'] == "True"]
-        for i,( _,row) in enumerate(tqdm(df.iterrows(),total=df.shape[0])):
-            if i%1000==0:
-                print(result_info_dict)
-            if i>4:
-                break
-            rxn_id=row["reaction_id"]
-            mapped_rxn = row["mapped_reaction_smiles"]
-            unmapped_rxn = row["rxn_smarts"]
-            #mapping_confidence=row["confidence"]
-
-            try:
-                updated_reaction, LRT, MT_class, electron_path = finder.get_electron_path(mapped_rxn)
-            except Exception as e :
-                if "except" not in result_info_dict:
-                    result_info_dict["except"]=0
-                result_info_dict["except"]+=1
-                MT_class="except"
-            else:
-                if MT_class not in result_info_dict:
-                    result_info_dict[MT_class] = 0
-                result_info_dict[MT_class] += 1
-                if not isinstance(finder.check_exception(MT_class), str):
-                    if MT_class!="mechanism not in collection":
-                        print(f"{rxn_id},{mapped_rxn},{updated_reaction},{LRT},{MT_class},{electron_path}",file=fp_out)
-            #print(MT_class)
-            draw_reaction(mapped_rxn, f"{output_dir}/{rxn_id}.png")
-            print(f"{rxn_id},{mapped_rxn},{unmapped_rxn},{MT_class}")
-
-def count_elements(mol):
-    """
-    统计分子中各类元素的数量。
-
-    参数:
-    mol (rdkit.Chem.Mol): RDKit 分子对象
-
-    返回:
-    dict: 元素及其对应的数量
-    """
-    element_counts = {}
-    for atom in mol.GetAtoms():
-        symbol = atom.GetSymbol()
-        if symbol in element_counts:
-            element_counts[symbol] += 1
-        else:
-            element_counts[symbol] = 1
-    return element_counts
-
 def draw_molecule(smiles, filename="molecule.png"):
     """
     从 SMILES 字符串绘制分子结构图并保存为图片文件。
@@ -647,6 +606,93 @@ def draw_reaction(rxn_smarts, filename="reaction.png",save=True):
         result.save(filename)
     else:
         return result
+
+def draw_reaction_with_template(rxn_smarts,width_mol,height_mol,mapped_reaction_smiles,mapped_reaction_template_smarts,reaction_id,output_dir):
+    pil_img_list = []
+    img = draw_reaction(rxn_smarts, save=False)
+    img.resize((width_mol * 5, height_mol))
+    pil_img_list.append(img)
+
+    rxn = AllChem.ReactionFromSmarts(mapped_reaction_smiles, useSmiles=True)
+    img = ReactionToImage(rxn)
+    img.resize((width_mol * 5, height_mol))
+    pil_img_list.append(img)
+
+    try:
+        rxn = AllChem.ReactionFromSmarts(mapped_reaction_template_smarts, useSmiles=False)
+        img = ReactionToImage(rxn)
+        img.resize((width_mol * 5, height_mol))
+        pil_img_list.append(img)
+    except:
+        pass
+
+    mode = pil_img_list[0].mode
+    # 创建一个空白画布，用于拼接图片
+    result = Image.new(mode, (width_mol * 5, height_mol * len(pil_img_list)), color=(255, 255, 255))  #
+    # 在画布上拼接图片
+    for img_idx, img in enumerate(pil_img_list):
+        if img is None:
+            continue
+        result.paste(img, (0, height_mol * img_idx,))
+
+    result.save(f"{output_dir}/{reaction_id}.png")
+
+def count_elements(mol):
+    """
+    统计分子中各类元素的数量。
+
+    参数:
+    mol (rdkit.Chem.Mol): RDKit 分子对象
+
+    返回:
+    dict: 元素及其对应的数量
+    """
+    element_counts = {}
+    for atom in mol.GetAtoms():
+        symbol = atom.GetSymbol()
+        if symbol in element_counts:
+            element_counts[symbol] += 1
+        else:
+            element_counts[symbol] = 1
+    return element_counts
+def find_mol(smiles_csv_file:str):
+    from rdkit.Chem import Descriptors
+    output_dir=f"{data_dir}tmp"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
+
+    df=pd.read_csv(smiles_csv_file)
+    for i,row in tqdm(df.iterrows(),total=df.shape[0]):
+        smiles=row["smiles"]
+        well_define=row["well_define"]
+        mol_id=row["idx"]
+        mol=Chem.MolFromSmiles(smiles)
+        if mol:
+            count_elements_dict=count_elements(mol)
+            ring_count = Descriptors.RingCount(mol)
+            # 获取分子中的所有环
+            sssr = mol.GetRingInfo().AtomRings()
+            # 检查是否有五元环
+            has_five_membered_ring = any(len(ring) == 5 for ring in sssr)
+            # 检查分子中是否有自由基
+            has_radical = any(atom.GetNumRadicalElectrons() > 0 for atom in mol.GetAtoms())
+            # 确保分子的电荷被正确计算
+            AllChem.ComputeGasteigerCharges(mol)
+
+            # 计算分子的净电荷
+            net_charge = sum(atom.GetFormalCharge() for atom in mol.GetAtoms())
+
+            try:
+                #if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and count_elements_dict["F"]==2:
+                if net_charge==0 and well_define==1 and not has_radical  and ring_count==1 and \
+                        count_elements_dict["C"]==7 and count_elements_dict["O"]==1 and count_elements_dict["F"]==1  \
+                        and "Li" not in count_elements_dict and "P" not in count_elements_dict:
+                    print(f"{mol_id},{smiles},{well_define}")
+                    draw_molecule(smiles,f"{output_dir}/{mol_id}.png")
+            except:
+                continue
+
 def find_reaction(smi_csv_path: str,rn_db_path: str):
 
     output_dir=f"{data_dir}tmp_rxn"
@@ -718,44 +764,39 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
         rxn_id_rxn_str=f"{reactant_1}.{reactant_2}>>{product_1}.{product_2}"
         print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}" )
         draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{reactant_1}.{reactant_2}>>{product_1}.{product_2}_{rxn_id_rxn_str}.png")
-
-def find_mol(smiles_csv_file:str):
-    from rdkit.Chem import Descriptors
-    output_dir=f"{data_dir}tmp"
+def find_reaction_in_db_with_template(filtered_rxn_db_path_path):
+    output_dir = f"{data_dir}tmp_rxn"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.mkdir(output_dir)
 
-    df=pd.read_csv(smiles_csv_file)
-    for i,row in tqdm(df.iterrows(),total=df.shape[0]):
-        smiles=row["smiles"]
-        well_define=row["well_define"]
-        mol_id=row["idx"]
-        mol=Chem.MolFromSmiles(smiles)
-        if mol:
-            count_elements_dict=count_elements(mol)
-            ring_count = Descriptors.RingCount(mol)
-            # 获取分子中的所有环
-            sssr = mol.GetRingInfo().AtomRings()
-            # 检查是否有五元环
-            has_five_membered_ring = any(len(ring) == 5 for ring in sssr)
-            # 检查分子中是否有自由基
-            has_radical = any(atom.GetNumRadicalElectrons() > 0 for atom in mol.GetAtoms())
-            # 确保分子的电荷被正确计算
-            AllChem.ComputeGasteigerCharges(mol)
+    filtered_rxn_con = sqlite3.connect(filtered_rxn_db_path_path)
+    filtered_rxn_cur = filtered_rxn_con.cursor()
+    sql_str =  "select count(*) from reactions"
 
-            # 计算分子的净电荷
-            net_charge = sum(atom.GetFormalCharge() for atom in mol.GetAtoms())
+    filtered_rxn_cur.execute(sql_str)
+    for (number_of_reactions,) in filtered_rxn_cur:
+        print(number_of_reactions)
 
-            try:
-                #if count_elements_dict["C"]==14 and count_elements_dict["O"]==2 and count_elements_dict["Li"]==2 and count_elements_dict["F"]==2:
-                if net_charge==0 and well_define==1 and not has_radical  and ring_count==1 and \
-                        count_elements_dict["C"]==7 and count_elements_dict["O"]==1 and count_elements_dict["F"]==1  \
-                        and "Li" not in count_elements_dict and "P" not in count_elements_dict:
-                    print(f"{mol_id},{smiles},{well_define}")
-                    draw_molecule(smiles,f"{output_dir}/{mol_id}.png")
-            except:
-                continue
+    height_mol = 300
+    width_mol = 300
+    sql_str = f"select  reaction_id,template,mapped_rxn,rxn  from " \
+              f"reactions where  reactant_1=13589 or reactant_2=13589 "
+    filtered_rxn_cur.execute(sql_str)
+    template_dict = {}
+    for reaction_id, mapped_reaction_template_smarts, mapped_reaction_smiles, rxn_smarts in tqdm(filtered_rxn_cur,
+                                                                                                 total=number_of_reactions):
+
+        if mapped_reaction_template_smarts not in template_dict:
+            template_dict[mapped_reaction_template_smarts] = 0
+        template_dict[mapped_reaction_template_smarts] += 1
+        if template_dict[mapped_reaction_template_smarts] <= 1:
+            if_draw = True
+        else:
+            if_draw = False
+        if if_draw:
+            draw_reaction_with_template(rxn_smarts, width_mol, height_mol, mapped_reaction_smiles,
+                                        mapped_reaction_template_smarts, reaction_id, output_dir)
 
 
 if __name__ == "__main__":
@@ -765,8 +806,8 @@ if __name__ == "__main__":
 
     #find_mol(f"{data_dir}smiles.csv")
     #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
-    find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
-
+    #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
+    find_reaction_in_db_with_template(f"{data_dir}rn_filtered.sqlite")
 
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
