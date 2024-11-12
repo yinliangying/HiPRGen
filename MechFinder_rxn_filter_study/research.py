@@ -807,7 +807,7 @@ if __name__ == "__main__":
     #find_mol(f"{data_dir}smiles.csv")
     #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
-    find_reaction_in_db_with_template(f"{data_dir}rn_filtered.sqlite")
+    find_reaction_in_db_with_template(f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
 
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
