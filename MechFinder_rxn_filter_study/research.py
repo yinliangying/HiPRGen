@@ -794,11 +794,11 @@ if __name__ == "__main__":
 
     data_dir="/personal/Bohrium_task_hiprgen_rn/hiprgen_json2rn_output/libe_and_fmol_0911_all/"
     mol_entries_file=f"{data_dir}mol_entries.pickle"
-
+    original_rxn_db_path=f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
 
     #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     #find_mol(f"{data_dir}smiles.csv")
-    find_reaction(f"{data_dir}smiles.csv",f"{data_dir}/rn.sqlite")
+    find_reaction(f"{data_dir}smiles.csv",original_rxn_db_path)
     #find_reaction_in_db_with_template(f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
 
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
