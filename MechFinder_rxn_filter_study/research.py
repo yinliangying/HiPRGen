@@ -800,9 +800,14 @@ def find_reaction_in_db_with_template(filtered_rxn_db_path_path):
 
 
 def eda_filter_rxn(file):
+    output_dir = f"{data_dir}tmp_rxn"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
+
     fp=open(file, "r")
     mapper = localmapper("cpu")
-    for line in fp:
+    for line in tqdm(fp,):
         reaction_id, rxn_smarts, rxn_id_rxn_str = line.strip().split(",")
 
         tmp_result_list = mapper.get_atom_map([rxn_smarts], return_dict=True)
@@ -820,6 +825,8 @@ def eda_filter_rxn(file):
         template_product_num = len(template_product.split("."))
         if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
             print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}")
+            draw_reaction_with_template(rxn_smarts, 300, 300, mapped_rxn,
+                                        template, reaction_id, output_dir)
 
 if __name__ == "__main__":
 
