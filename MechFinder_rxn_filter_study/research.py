@@ -713,11 +713,17 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
     rn_con = sqlite3.connect(rn_db_path)
     rn_cur = rn_con.cursor()
 
+
+    rn_cur.execute( "select count(*) from reactions where  reactant_1=13589 or reactant_2=13589 ")
+    for (number_of_reactions,) in rn_cur:
+        print(number_of_reactions)
     rn_cur.execute(
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2 from "
         f"reactions where  reactant_1=13589 or reactant_2=13589 ") #and (reactant_1=13590 or reactant_2=13590)
 
-    for row in tqdm(rn_cur):
+    mapper = localmapper("cpu")
+
+    for row in tqdm(rn_cur, total=number_of_reactions):
         reaction_id = row[0]
         number_of_reactants = int(row[1])
         number_of_products = int(row[2])
@@ -762,8 +768,25 @@ def find_reaction(smi_csv_path: str,rn_db_path: str):
             continue
 
         rxn_id_rxn_str=f"{reactant_1}.{reactant_2}>>{product_1}.{product_2}"
-        print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}" )
-        draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{reactant_1}.{reactant_2}>>{product_1}.{product_2}_{rxn_id_rxn_str}.png")
+
+        tmp_result_list = mapper.get_atom_map([rxn_id_rxn_str], return_dict=True)
+
+        #mapping_times += 1
+
+        tmp_result=tmp_result_list[0]
+        template = tmp_result["template"]
+        mapped_rxn = tmp_result["mapped_rxn"]
+        rxn_reactant, rxn_product = mapped_rxn.split(">>")
+        rxn_reactant_num = len(rxn_reactant.split("."))
+        rxn_product_num = len(rxn_product.split("."))
+        template_reactant, template_product = template.split(">>")
+        template_reactant_num = len(template_reactant.split("."))
+        template_product_num = len(template_product.split("."))
+        if rxn_reactant_num == template_reactant_num and rxn_product_num == template_product_num:
+            print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}")
+
+        # print(f"{reaction_id},{rxn_smarts},{rxn_id_rxn_str}" )
+        # draw_reaction(rxn_smarts, f"{output_dir}/{reaction_id}_{reactant_1}.{reactant_2}>>{product_1}.{product_2}_{rxn_id_rxn_str}.png")
 def find_reaction_in_db_with_template(filtered_rxn_db_path_path):
     output_dir = f"{data_dir}tmp_rxn"
     if os.path.exists(output_dir):
