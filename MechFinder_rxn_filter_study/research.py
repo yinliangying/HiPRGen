@@ -145,10 +145,9 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
 
 
 def is_reaction_matched(template_obj, reactant_mols, product_smiles_set,template_smarts,rxn_smiles):
-    try:
-        template_results = template_obj.RunReactants(reactant_mols)
-    except:
-        print(template_smarts,rxn_smiles)
+
+    template_results = template_obj.RunReactants(reactant_mols)
+
     if not template_results:
         return False
     if len(template_results)==0:
