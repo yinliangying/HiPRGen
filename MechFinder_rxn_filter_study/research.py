@@ -142,6 +142,154 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
             print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num}",file=fp_out)
 
         #print(atom_symbol_dict)
+
+
+def is_reaction_matched(template_obj, reactant_mols, product_smiles_set):
+    template_products_mols = template_obj.RunReactants(reactant_mols)[0]
+    template_products_set = set([Chem.MolToSmiles(mol) for mol in template_products_mols])
+    return template_products_set == product_smiles_set
+
+def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: str):
+
+    #load template
+    if not os.path.exists("/root/HiPRGen/MechFinder_rxn_filter_study/data/templatecorr_templates_202411.pkl"):
+        template_smarts_list = []
+        with open("/root/HiPRGen/MechFinder_rxn_filter_study/data/local_mapper_templates_202403.pkl", "rb") as fp:
+            template_set = pickle.load(fp)
+            for template in template_set:
+                template_smarts_list.append(template)
+        # https://github.com/hesther/templatecorr
+        data = pd.read_hdf("/root/HiPRGen/MechFinder_rxn_filter_study/data/uspto_460k_unique_templates.hdf5", "table")
+        for i in range(len(data)):
+            products, reactants = data["retro_template"][i].split(">>")
+            template_str = ">>".join([reactants, products])
+            template_smarts_list.append(template_str)
+        with open("/root/HiPRGen/MechFinder_rxn_filter_study/data/templatecorr_templates_202411.pkl", "wb") as fp:
+            pickle.dump(template_smarts_list, fp)
+    template_smarts_list = pickle.load(open("/root/HiPRGen/MechFinder_rxn_filter_study/data/templatecorr_templates_202411.pkl", "rb"))
+    template_smarts_obj_list=[]
+    for template_str in template_smarts_list:
+        template_obj = AllChem.ReactionFromSmarts(template_str)
+        template_smarts_obj_list.append((template_str,template_obj))
+
+    # Load smiles
+    id_smiles_dict = {}
+    smiles_id_dict = {}
+    smi_df= pd.read_csv(smi_csv_path)
+    for i, row in tqdm(smi_df.iterrows(),total=smi_df.shape[0]):
+        mol_id = int(row["idx"])
+        smiles = AllChem.MolToSmiles(AllChem.MolFromSmiles(row["smiles"]))
+        well_define = int(row["well_define"])
+        mol_charge = int(row["mol_charge"])
+        star_atom_num=int(row["star_atom_num"])
+        if True:#if well_define==1 and mol_charge==0 and star_atom_num==0:
+            id_smiles_dict[mol_id] = smiles
+            smiles_id_dict[smiles] = mol_id
+    logger.info(f"smiles_id_dict length:{len(smiles_id_dict)}")
+
+    #prepare filtered_rxn_db
+    if os.path.exists(filtered_rxn_db_path_path):
+        os.remove(filtered_rxn_db_path_path)
+    filtered_rxn_con = sqlite3.connect( filtered_rxn_db_path_path)
+    filtered_rxn_cur = filtered_rxn_con.cursor()
+    filtered_rxn_cur.execute("""
+        CREATE TABLE reactions (
+                reaction_id         INTEGER NOT NULL PRIMARY KEY,
+                number_of_reactants INTEGER NOT NULL,
+                number_of_products  INTEGER NOT NULL,
+                reactant_1          INTEGER NOT NULL,
+                reactant_2          INTEGER NOT NULL,
+                product_1           INTEGER NOT NULL,
+                product_2           INTEGER NOT NULL,
+                rate                REAL NOT NULL,
+                dG                  REAL NOT NULL,
+                dG_barrier          REAL NOT NULL,
+                is_redox            INTEGER NOT NULL,
+                template            STRING,
+                mapped_rxn          STRING,
+                rxn                 STRING
+        );
+    """)
+    filtered_rxn_con.commit()
+
+    # recursive match
+    rn_con = sqlite3.connect(rxn_db_path)
+    rn_cur = rn_con.cursor()
+    # rn_cur.execute(f"select count(*) from reactions")
+    # sql_limit = rn_cur.fetchone()[0]
+    commit_freq=10000
+    execute_cnt=0
+    rn_cur.execute(
+        f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2, "
+        f"rate,dG,dG_barrier,is_redox from reactions")
+    for row_index,row in tqdm(enumerate(rn_cur)):
+        number_of_reactants = int(row[1])
+        number_of_products = int(row[2])
+        reactant_1 = int(row[3])
+        reactant_2 = int(row[4])
+        product_1 = int(row[5])
+        product_2 = int(row[6])
+        try:
+            reactant_1_smiles = id_smiles_dict[reactant_1]
+        except:
+            continue
+        if number_of_reactants == 2:
+            try:
+                reactant_2_smiles = id_smiles_dict[reactant_2]
+            except:
+                continue
+        try:
+            product_1_smiles = id_smiles_dict[product_1]
+        except:
+            continue
+        if number_of_products == 2:
+            try:
+                product_2_smiles = id_smiles_dict[product_2]
+            except:
+                continue
+        rxn_smiles=reactant_1_smiles
+        if number_of_reactants == 2:
+            rxn_smiles += "." + reactant_2_smiles
+        rxn_smiles += f">>{product_1_smiles}"
+        if number_of_products == 2:
+            rxn_smiles += "." + product_2_smiles
+
+        reactant_mols=[Chem.MolFromSmiles(smiles) for smiles in rxn_smiles.split(">>")[0].split(".")]
+        product_smiles_set = set(rxn_smiles.split(">>")[1].split("."))
+
+        matched=False
+        matched_template_smarts = ""
+        for template_smarts,template_obj in template_smarts_obj_list:
+            template_reactant_num = len(template_smarts.split(">>")[0].split("."))
+            template_product_num = len(template_smarts.split(">>")[1].split("."))
+            if number_of_reactants == template_reactant_num and number_of_products == template_product_num:
+                if is_reaction_matched(template_obj, reactant_mols, product_smiles_set):
+                    matched = True
+                    matched_template_smarts= template_smarts
+                    break
+        if matched:
+            filtered_sql_str = f"""
+                insert into reactions 
+                (reaction_id,number_of_reactants,number_of_products,reactant_1,reactant_2,product_1,product_2,
+                rate,dG,dG_barrier,is_redox,template,mapped_rxn,rxn)
+                 values 
+                (?,?,?,?,?,?,?,
+                ?,?,?,?,?,?,?)
+                """
+            sql_data = list(row) + [matched_template_smarts, rxn_smiles, rxn_smiles]
+            try:
+                filtered_rxn_cur.execute(filtered_sql_str, sql_data)
+                execute_cnt+=1
+            except:
+                logger.error(traceback.format_exc())
+                logger.error(str(sql_data))
+                continue
+        if row_index % commit_freq == 0 and row_index!=0:
+            filtered_rxn_con.commit()
+            logger.info(f"commit at row_index: {row_index} execute_cnt:{execute_cnt}")
+
+    filtered_rxn_con.commit()
+
 def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: str):
     """
        目前只考虑无自由基无净电荷分子
@@ -201,12 +349,12 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         f"select  reaction_id, number_of_reactants, number_of_products, reactant_1, reactant_2, product_1, product_2, "
         f"rate,dG,dG_barrier,is_redox from reactions")
     mapping_batch_size=1000
-    commit_freq=100
-    mapping_times = 0
+    commit_freq=10000
+    execute_cnt=0
     tmp_mapping_row_list=[]
     tmp_mapping_rxn_list=[]
     mapper = localmapper("cpu")
-    for row in tqdm(rn_cur):
+    for row_index,row in tqdm(enumerate(rn_cur)):
 
         number_of_reactants = int(row[1])
         number_of_products = int(row[2])
@@ -243,10 +391,9 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
         tmp_mapping_row_list.append(row)
 
         if len(tmp_mapping_row_list)==mapping_batch_size:
-            logger.info(f"mapping times:{mapping_times}")
+
             tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
-            logger.info("mapping finished")
-            mapping_times += 1
+
             for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list,tmp_mapping_rxn_list):
                 if tmp_result["confident"] == True:
                     template = tmp_result["template"]
@@ -269,6 +416,7 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
                         try:
                             sql_data = list(tmp_row) + [template, mapped_rxn, tmp_rxn]
                             filtered_rxn_cur.execute(filtered_sql_str, sql_data)
+                            execute_cnt+=1
                         except:
 
                             logger.error(traceback.format_exc())
@@ -277,9 +425,9 @@ def filter_rxn( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db_path_path: st
             tmp_mapping_rxn_list=[]
             tmp_mapping_row_list=[]
 
-            if mapping_times % commit_freq == 0:
-                logger.info(f"commit at {mapping_times}")
-                filtered_rxn_con.commit()
+        if row_index % commit_freq == 0 and row_index != 0:
+            filtered_rxn_con.commit()
+            logger.info(f"commit at row_index: {row_index} execute_cnt:{execute_cnt}")
 
     tmp_result_list = mapper.get_atom_map(tmp_mapping_rxn_list, return_dict=True)
     for tmp_row, tmp_result, tmp_rxn in zip(tmp_mapping_row_list, tmp_result_list, tmp_mapping_rxn_list):
@@ -841,7 +989,7 @@ if __name__ == "__main__":
     #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",original_rxn_db_path)
     #find_reaction_in_db_with_template(f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
-    eda_filter_rxn("13589_reaction_unfiltered")
+    #eda_filter_rxn("13589_reaction_unfiltered")
     # trans_rxn_db2smarts(f"{data_dir}smiles.csv",
     #                     rn_db_path="/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",
     #                     rxn_smarts_output_file=f"{data_dir}rxn_smarts.csv")
@@ -849,4 +997,5 @@ if __name__ == "__main__":
     #apply_MechFinder(f"{data_dir}rxn_smarts_mapped.csv",f"{data_dir}rxn_smarts_mapped_mech.csv")
     #eda_mapped_rxn_smarts(f"{data_dir}rxn_smarts_mapped.csv")
     #filter_rxn(f"{data_dir}smiles.csv",f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite",f"{data_dir}/rn_filtered.sqlite")
+    filter_rxn_with_template(f"{data_dir}smiles.csv",original_rxn_db_path,f"{data_dir}/rn_filtered_with_template.sqlite")
     #eda_filtered_rxn(f"{data_dir}/rn_filtered.sqlite")
