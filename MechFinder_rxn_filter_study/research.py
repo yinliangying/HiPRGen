@@ -270,7 +270,7 @@ def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db
         for template_smarts,template_obj in template_smarts_obj_list:
             template_reactant_num = len(template_smarts.split(">>")[0].split("."))
             template_product_num = len(template_smarts.split(">>")[1].split("."))
-            if number_of_reactants == template_reactant_num and number_of_products == template_product_num:
+            if len(rxn_smiles.split(">>")[0].split(".")) == template_reactant_num and len(rxn_smiles.split(">>")[1].split(".")) == template_product_num:
                 if is_reaction_matched(template_obj, reactant_mols, product_smiles_set,template_smarts,rxn_smiles):
                     matched = True
                     matched_template_smarts= template_smarts
