@@ -145,7 +145,13 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
 
 
 def is_reaction_matched(template_obj, reactant_mols, product_smiles_set):
-    template_products_mols = template_obj.RunReactants(reactant_mols)[0]
+    template_results = template_obj.RunReactants(reactant_mols)
+
+    if not template_results:
+        return False
+    if len(template_results)==0:
+        return False
+    template_products_mols=template_results[0]
     template_products_set = set([Chem.MolToSmiles(mol) for mol in template_products_mols])
     return template_products_set == product_smiles_set
 
