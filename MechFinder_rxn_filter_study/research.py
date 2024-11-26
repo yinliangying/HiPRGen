@@ -144,9 +144,11 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
         #print(atom_symbol_dict)
 
 
-def is_reaction_matched(template_obj, reactant_mols, product_smiles_set):
-    template_results = template_obj.RunReactants(reactant_mols)
-
+def is_reaction_matched(template_obj, reactant_mols, product_smiles_set,template_smarts,rxn_smiles):
+    try:
+        template_results = template_obj.RunReactants(reactant_mols)
+    except:
+        print(template_smarts,rxn_smiles)
     if not template_results:
         return False
     if len(template_results)==0:
@@ -269,7 +271,7 @@ def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db
             template_reactant_num = len(template_smarts.split(">>")[0].split("."))
             template_product_num = len(template_smarts.split(">>")[1].split("."))
             if number_of_reactants == template_reactant_num and number_of_products == template_product_num:
-                if is_reaction_matched(template_obj, reactant_mols, product_smiles_set):
+                if is_reaction_matched(template_obj, reactant_mols, product_smiles_set,template_smarts,rxn_smiles):
                     matched = True
                     matched_template_smarts= template_smarts
                     break
