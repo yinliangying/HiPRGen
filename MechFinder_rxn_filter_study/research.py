@@ -272,7 +272,7 @@ def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db
         rxn_smiles += f">>{product_1_smiles}"
         if number_of_products == 2:
             rxn_smiles += "." + product_2_smiles
-        print(rxn_smiles)
+        #print(rxn_smiles)
         reactant_mols=[Chem.MolFromSmiles(smiles) for smiles in rxn_smiles.split(">>")[0].split(".")]
         product_smiles_set = set(rxn_smiles.split(">>")[1].split("."))
 
