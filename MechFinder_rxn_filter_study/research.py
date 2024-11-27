@@ -244,10 +244,10 @@ def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db
         product_1 = int(row[5])
         product_2 = int(row[6])
         reaction_id=int(row[0])
-        if reaction_id not in [59047, 59403, 59421, 59422, 59981, 60604, 61205, 61515, 61812, 61847, 61850, 66956, 67000, 68291, 74913, 74999, 77090]:
-            continue
-        if reaction_id>77090:
-            break
+        # if reaction_id not in [59047, 59403, 59421, 59422, 59981, 60604, 61205, 61515, 61812, 61847, 61850, 66956, 67000, 68291, 74913, 74999, 77090]:
+        #     continue
+        # if reaction_id>77090:
+        #     break
         try:
             reactant_1_smiles = id_well_define_smiles_dict[reactant_1]
         except:
@@ -1004,7 +1004,7 @@ if __name__ == "__main__":
     mol_entries_file=f"{data_dir}mol_entries.pickle"
     original_rxn_db_path=f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
 
-    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",original_rxn_db_path)
     #find_reaction_in_db_with_template(f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
