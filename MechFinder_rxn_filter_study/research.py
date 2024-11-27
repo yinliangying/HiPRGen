@@ -122,7 +122,11 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
 
             # Convert OBMol to RDKit Mol
             rdkit_mol = obmol_to_rdkit_mol(obmol)
-            well_define_smiles=Chem.MolToSmiles(Chem.RemoveHs(rdkit_mol))
+            try:
+                well_define_smiles=Chem.MolToSmiles(Chem.RemoveHs(rdkit_mol))
+            except:
+                logger.error(f"Error in well_define_smiles mol {idx}")
+                continue
             # Set charge and spin multiplicity
             rdkit_mol.SetProp("_Name", f"Molecule {idx}")
             rdkit_mol.SetProp("Charge", str(a_mol.charge))
