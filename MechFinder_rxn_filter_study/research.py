@@ -108,7 +108,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
 
     atom_symbol_dict = {}
     with open(output_smi_csv_path,"w") as fp_out:
-        print("idx,smiles,well_define,mol_charge,star_atom_num",file=fp_out)
+        print("idx,smiles,well_define,mol_charge,star_atom_num,well_define_smiles",file=fp_out)
         for idx, a_mol_info in enumerate(f_data):
             # Create XYZ file
             a_mol = a_mol_info.molecule
@@ -122,7 +122,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
 
             # Convert OBMol to RDKit Mol
             rdkit_mol = obmol_to_rdkit_mol(obmol)
-
+            well_define_smiles=Chem.MolToSmiles(Chem.RemoveHs(rdkit_mol))
             # Set charge and spin multiplicity
             rdkit_mol.SetProp("_Name", f"Molecule {idx}")
             rdkit_mol.SetProp("Charge", str(a_mol.charge))
@@ -139,7 +139,7 @@ def filter_mol_entries(pickle_path: str,output_smi_csv_path: str) -> str:
                     continue
             except:
                 continue
-            print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num}",file=fp_out)
+            print(f"{idx},{smiles},{0 if well_define==False else 1},{a_mol.charge},{star_atom_num},{well_define_smiles}",file=fp_out)
 
         #print(atom_symbol_dict)
 
@@ -182,15 +182,18 @@ def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db
     # Load smiles
     id_smiles_dict = {}
     smiles_id_dict = {}
+    id_well_define_smiles_dict = {}
     smi_df= pd.read_csv(smi_csv_path)
     for i, row in tqdm(smi_df.iterrows(),total=smi_df.shape[0]):
         mol_id = int(row["idx"])
         smiles = AllChem.MolToSmiles(AllChem.MolFromSmiles(row["smiles"]))
+        well_define_smiles=row["well_define_smiles"]
         well_define = int(row["well_define"])
         mol_charge = int(row["mol_charge"])
         star_atom_num=int(row["star_atom_num"])
         if True:#if well_define==1 and mol_charge==0 and star_atom_num==0:
             id_smiles_dict[mol_id] = smiles
+            id_well_define_smiles_dict[mol_id]=well_define_smiles
             smiles_id_dict[smiles] = mol_id
     logger.info(f"smiles_id_dict length:{len(smiles_id_dict)}")
 
@@ -236,22 +239,27 @@ def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db
         reactant_2 = int(row[4])
         product_1 = int(row[5])
         product_2 = int(row[6])
+        reaction_id=int(row[0])
+        if reaction_id not in [59047, 59403, 59421, 59422, 59981, 60604, 61205, 61515, 61812, 61847, 61850, 66956, 67000, 68291, 74913, 74999, 77090]:
+            continue
+        if reaction_id>77090:
+            break
         try:
-            reactant_1_smiles = id_smiles_dict[reactant_1]
+            reactant_1_smiles = id_well_define_smiles_dict[reactant_1]
         except:
             continue
         if number_of_reactants == 2:
             try:
-                reactant_2_smiles = id_smiles_dict[reactant_2]
+                reactant_2_smiles = id_well_define_smiles_dict[reactant_2]
             except:
                 continue
         try:
-            product_1_smiles = id_smiles_dict[product_1]
+            product_1_smiles = id_well_define_smiles_dict[product_1]
         except:
             continue
         if number_of_products == 2:
             try:
-                product_2_smiles = id_smiles_dict[product_2]
+                product_2_smiles = id_well_define_smiles_dict[product_2]
             except:
                 continue
         rxn_smiles=reactant_1_smiles
@@ -260,7 +268,7 @@ def filter_rxn_with_template( smi_csv_path: str,rxn_db_path: str,filtered_rxn_db
         rxn_smiles += f">>{product_1_smiles}"
         if number_of_products == 2:
             rxn_smiles += "." + product_2_smiles
-
+        print(rxn_smiles)
         reactant_mols=[Chem.MolFromSmiles(smiles) for smiles in rxn_smiles.split(">>")[0].split(".")]
         product_smiles_set = set(rxn_smiles.split(">>")[1].split("."))
 
@@ -992,7 +1000,7 @@ if __name__ == "__main__":
     mol_entries_file=f"{data_dir}mol_entries.pickle"
     original_rxn_db_path=f"/root/HiPRGen/data/libe_and_fmol_0911_all/rn.sqlite"
 
-    #filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
+    filter_mol_entries(mol_entries_file, f"{data_dir}smiles.csv")
     #find_mol(f"{data_dir}smiles.csv")
     #find_reaction(f"{data_dir}smiles.csv",original_rxn_db_path)
     #find_reaction_in_db_with_template(f"/root/HiPRGen/data/libe_and_fmol_0911_all_rn_filter/rn.sqlite")
